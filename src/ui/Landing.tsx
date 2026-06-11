@@ -11,6 +11,7 @@ import {
 } from './icons'
 import type { Theme } from './theme'
 import { t } from '../strings/en'
+import logoUrl from './assets/logo.png'
 
 export type QuickToolId = 'merge' | 'images' | 'compress' | 'protect'
 
@@ -34,7 +35,7 @@ export function Landing({ theme, onToggleTheme, onOpenFile, opening, onQuickTool
     <div class="landing">
       <header class="landing__top">
         <div class="brand">
-          <span class="brand__mark">p</span>
+          <img class="brand__mark" src={logoUrl} width={32} height={32} alt="" />
           <span class="brand__name">{t.appName}</span>
         </div>
         <div class="landing__top-right">

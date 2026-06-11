@@ -8,16 +8,10 @@
   letter-spacing: -0.01em;
 }
 .brand__mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   width: 32px;
   height: 32px;
-  border-radius: 9px;
-  background: var(--accent);
-  color: var(--text-on-accent);
-  font-weight: 900;
-  font-size: 20px;
+  object-fit: contain;
 }
 .brand__name {
   color: var(--text);
