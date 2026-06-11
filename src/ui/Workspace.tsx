@@ -10,6 +10,7 @@ import { AnnotateToolbar } from './AnnotateToolbar'
 import { OverlayLayer } from '../overlay/OverlayLayer'
 import { CropOverlay } from '../overlay/CropOverlay'
 import { TextSelectLayer } from '../overlay/TextSelectLayer'
+import { PreviewLayer } from '../overlay/PreviewLayer'
 import { DocumentMenu, type DocAction } from './DocumentMenu'
 import { SplitDialog } from './dialogs/SplitDialog'
 import { InsertDialog } from './dialogs/InsertDialog'
@@ -321,40 +322,49 @@ export function Workspace({
                 descriptor={currentDescriptor}
                 cssWidth={cssWidth}
                 onAspect={setPageAspect}
-                renderOverlay={(geometry) =>
-                  cropMode ? (
-                    <CropOverlay
-                      geometry={geometry}
+                renderOverlay={(geometry) => (
+                  <>
+                    {cropMode ? (
+                      <CropOverlay
+                        geometry={geometry}
+                        editor={editor}
+                        pageId={currentDescriptor.id}
+                        onDone={() => setCropMode(false)}
+                      />
+                    ) : tool === 'replaceText' ? (
+                      <TextSelectLayer
+                        editor={editor}
+                        registry={registry}
+                        descriptor={currentDescriptor}
+                        geometry={geometry}
+                        onReplaced={(id) => {
+                          setTool('select')
+                          setOverlaySel(id)
+                        }}
+                      />
+                    ) : (
+                      <OverlayLayer
+                        editor={editor}
+                        pageId={currentDescriptor.id}
+                        geometry={geometry}
+                        tool={tool}
+                        options={toolOptions}
+                        selectedId={overlaySel}
+                        setSelectedId={setOverlaySel}
+                        onPlaced={() => setTool('select')}
+                        insertRequest={insertRequest}
+                        onInsertConsumed={() => setInsertRequest(null)}
+                      />
+                    )}
+                    <PreviewLayer
                       editor={editor}
-                      pageId={currentDescriptor.id}
-                      onDone={() => setCropMode(false)}
-                    />
-                  ) : tool === 'replaceText' ? (
-                    <TextSelectLayer
-                      editor={editor}
-                      registry={registry}
                       descriptor={currentDescriptor}
                       geometry={geometry}
-                      onReplaced={(id) => {
-                        setTool('select')
-                        setOverlaySel(id)
-                      }}
+                      pageIndex={pages.findIndex((p) => p.id === currentDescriptor.id)}
+                      showCrop={!cropMode}
                     />
-                  ) : (
-                    <OverlayLayer
-                      editor={editor}
-                      pageId={currentDescriptor.id}
-                      geometry={geometry}
-                      tool={tool}
-                      options={toolOptions}
-                      selectedId={overlaySel}
-                      setSelectedId={setOverlaySel}
-                      onPlaced={() => setTool('select')}
-                      insertRequest={insertRequest}
-                      onInsertConsumed={() => setInsertRequest(null)}
-                    />
-                  )
-                }
+                  </>
+                )}
               />
             )}
           </div>

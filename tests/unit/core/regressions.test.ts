@@ -51,6 +51,18 @@ describe('regression: inserted pages keep their source rotation', () => {
   })
 })
 
+describe('regression: watermark on a rotated page', () => {
+  it('produces a valid PDF when the page carries a /Rotate entry', async () => {
+    const rotBytes = await makeRotatedPdf(90)
+    const editor = await EditorDocument.open(rotBytes, 'r.pdf')
+    editor.setWatermark({ text: 'CONFIDENTIAL', color: '#ff0000', opacity: 0.2, fontSize: 48, range: null })
+    const out = await editor.build()
+    const reloaded = await PDFDocument.load(out)
+    expect(reloaded.getPageCount()).toBe(1)
+    expect(reloaded.getPage(0).getRotation().angle).toBe(90)
+  })
+})
+
 describe('regression: split with overlays bakes into every group', () => {
   it('bakes overlays in both split groups (not just the first)', async () => {
     const editor = await EditorDocument.open(fixture('plain-3page.pdf'), 'a.pdf')

@@ -552,3 +552,118 @@ test('k. phase-4 compress quick-tool: downloads a valid PDF', async ({ page }) =
   expect(bytes.slice(0, 5).toString('ascii')).toBe('%PDF-')
   expect(bytes.length).toBeGreaterThan(500)
 })
+
+// ─── m. Watermark preview + bake ─────────────────────────────────────────────
+
+test('m. watermark preview: live preview visible and text baked into saved PDF', async ({ page }) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
+  await waitForCanvas(page)
+
+  // Open Document → Watermark
+  await openDocMenu(page)
+  await page.getByRole('menuitem', { name: /watermark/i }).click()
+
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible({ timeout: 10_000 })
+
+  // Fill the watermark text input (aria-label = "Watermark text")
+  const textInput = dialog.locator('input[aria-label="Watermark text"]')
+  await expect(textInput).toBeVisible({ timeout: 5_000 })
+  await textInput.fill('WMPREVIEW1')
+
+  // Click "Add watermark" — this calls editor.setWatermark() then closes the dialog
+  await dialog.getByRole('button', { name: 'Add watermark' }).click()
+  await expect(dialog).not.toBeVisible({ timeout: 5_000 })
+
+  // Live preview must show the watermark text in the workspace
+  await expect(page.locator('.preview-layer')).toContainText('WMPREVIEW1', { timeout: 5_000 })
+
+  // Save and capture download
+  const dlPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: /save/i }).click()
+  const dl = await dlPromise
+
+  const savedPath = await dl.path()
+  expect(savedPath).not.toBeNull()
+
+  const bytes = fs.readFileSync(savedPath!)
+  expect(bytes.slice(0, 5).toString('ascii')).toBe('%PDF-')
+
+  // Verify the watermark text is baked as real extractable text
+  const text = await extractPdfText(bytes)
+  expect(text).toContain('WMPREVIEW1')
+})
+
+// ─── n. Page numbers preview + valid save ─────────────────────────────────────
+
+test('n. page numbers preview: preview svg text visible and save produces valid PDF', async ({ page }) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
+  await waitForCanvas(page)
+
+  // Open Document → Page numbers
+  await openDocMenu(page)
+  await page.getByRole('menuitem', { name: /page numbers/i }).click()
+
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible({ timeout: 10_000 })
+
+  // Click "Add page numbers" with defaults (bottom-center, plain format)
+  await dialog.getByRole('button', { name: 'Add page numbers' }).click()
+  await expect(dialog).not.toBeVisible({ timeout: 5_000 })
+
+  // Live preview: .preview-layer must exist and contain an svg <text> element
+  await expect(page.locator('.preview-layer')).toBeVisible({ timeout: 5_000 })
+  await expect(page.locator('.preview-layer svg text')).toBeVisible({ timeout: 5_000 })
+
+  // Save and confirm a valid PDF is downloaded
+  const dlPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: /save/i }).click()
+  const dl = await dlPromise
+
+  const savedPath = await dl.path()
+  expect(savedPath).not.toBeNull()
+
+  const bytes = fs.readFileSync(savedPath!)
+  expect(bytes.slice(0, 5).toString('ascii')).toBe('%PDF-')
+  expect(bytes.length).toBeGreaterThan(500)
+})
+
+// ─── o. Crop preview + valid save ────────────────────────────────────────────
+
+test('o. crop preview: crop outline visible after apply and save produces valid PDF', async ({ page }) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
+  await waitForCanvas(page)
+
+  // Open Document → Crop… (enters crop mode inline — no dialog)
+  await openDocMenu(page)
+  await page.getByRole('menuitem', { name: 'Crop…' }).click()
+
+  // CropOverlay must be visible with the interactive crop-bar
+  await expect(page.locator('.cropoverlay')).toBeVisible({ timeout: 5_000 })
+  await expect(page.locator('.crop-bar')).toBeVisible({ timeout: 5_000 })
+
+  // Apply to this page only — uses t.dialogs.crop.thisPage = "This page"
+  await page.getByRole('button', { name: 'This page' }).click()
+
+  // After apply, cropoverlay is gone and crop mode exits
+  await expect(page.locator('.cropoverlay')).not.toBeVisible({ timeout: 5_000 })
+
+  // PreviewLayer now renders the crop dim: .crop-preview-outline and .crop-shade
+  await expect(page.locator('.crop-preview-outline').first()).toBeVisible({ timeout: 5_000 })
+  await expect(page.locator('.crop-shade').first()).toBeVisible({ timeout: 5_000 })
+
+  // Save and confirm a valid PDF is downloaded
+  const dlPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: /save/i }).click()
+  const dl = await dlPromise
+
+  const savedPath = await dl.path()
+  expect(savedPath).not.toBeNull()
+
+  const bytes = fs.readFileSync(savedPath!)
+  expect(bytes.slice(0, 5).toString('ascii')).toBe('%PDF-')
+  expect(bytes.length).toBeGreaterThan(500)
+})
