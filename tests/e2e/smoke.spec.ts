@@ -6,6 +6,10 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FIXTURES = path.resolve(__dirname, '../fixtures')
 
+// The build renames dist/index.html -> dist/pedift.html, so serve's SPA fallback
+// won't kick in.  Navigate to the explicit path.
+const APP = '/pedift.html'
+
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 async function openPdfViaChooser(page: import('@playwright/test').Page, filePath: string) {
@@ -19,7 +23,7 @@ async function openPdfViaChooser(page: import('@playwright/test').Page, filePath
 // ─── a. Loads app ─────────────────────────────────────────────────────────────
 
 test('a. loads app: title and drop zone visible', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(APP)
   await expect(page).toHaveTitle(/pedift/i)
   await expect(page.locator('.dropzone').first()).toBeVisible()
 })
@@ -27,7 +31,7 @@ test('a. loads app: title and drop zone visible', async ({ page }) => {
 // ─── b. Open + render ─────────────────────────────────────────────────────────
 
 test('b. open + render: plain-3page.pdf renders canvas and status bar', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(APP)
 
   await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
 
@@ -48,7 +52,7 @@ test('b. open + render: plain-3page.pdf renders canvas and status bar', async ({
 // ─── c. Save copy ─────────────────────────────────────────────────────────────
 
 test('c. save copy: download is a valid PDF', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(APP)
   await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
 
   // Wait until the document is rendered before saving
@@ -71,7 +75,7 @@ test('c. save copy: download is a valid PDF', async ({ page }) => {
 // ─── d. Password dialog ───────────────────────────────────────────────────────
 
 test('d. password: wrong password shows error, correct password opens document', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(APP)
   await openPdfViaChooser(page, path.join(FIXTURES, 'encrypted.pdf'))
 
   // Password dialog must appear
@@ -100,7 +104,7 @@ test('d. password: wrong password shows error, correct password opens document',
 test('e. file:// worker-offline: pdf.js worker runs with no worker/blob console errors', async ({ page }) => {
   const distHtml = path.resolve(__dirname, '../../dist/pedift.html')
 
-  // Collect console errors and page errors
+  // Collect console errors and page errors matching worker/blob patterns
   const workerErrors: string[] = []
   const workerPatterns = [/worker/i, /blob:/i, /Failed to fetch/i, /importScripts/i]
 
@@ -130,25 +134,21 @@ test('e. file:// worker-offline: pdf.js worker runs with no worker/blob console 
   // Check no worker errors just from loading
   expect(workerErrors, `Worker/blob errors on initial load: ${workerErrors.join(' | ')}`).toHaveLength(0)
 
-  // Open a PDF via filechooser (may work on file://)
+  // Open a PDF — try filechooser first, fall back to programmatic DataTransfer drop
+  let opened = false
+
   try {
     const [chooser] = await Promise.all([
       page.waitForEvent('filechooser', { timeout: 5_000 }),
       page.locator('.dropzone').first().click(),
     ])
     await chooser.setFiles(path.join(FIXTURES, 'plain-3page.pdf'))
+    opened = true
+  } catch {
+    // filechooser may not fire on file:// — fall back to drop event
+  }
 
-    // Wait for canvas to render
-    const canvas = page.locator('.pagecanvas__canvas').first()
-    await expect(canvas).toBeVisible({ timeout: 30_000 })
-
-    const box = await canvas.boundingBox()
-    expect(box).not.toBeNull()
-    expect(box!.width).toBeGreaterThan(50)
-    expect(box!.height).toBeGreaterThan(50)
-  } catch (chooserErr) {
-    // filechooser may not fire on file:// in all Playwright versions;
-    // fall back to a programmatic drop event injected into the page.
+  if (!opened) {
     const fixtureBytes = Array.from(fs.readFileSync(path.join(FIXTURES, 'plain-3page.pdf')))
 
     await page.evaluate(async (bytes: number[]) => {
@@ -166,17 +166,17 @@ test('e. file:// worker-offline: pdf.js worker runs with no worker/blob console 
       dropzone.dispatchEvent(new DragEvent('dragover', { bubbles: true, dataTransfer: dt }))
       dropzone.dispatchEvent(new DragEvent('drop', { bubbles: true, dataTransfer: dt }))
     }, fixtureBytes)
-
-    // Wait for canvas to render
-    const canvas = page.locator('.pagecanvas__canvas').first()
-    await expect(canvas).toBeVisible({ timeout: 30_000 })
-
-    const box = await canvas.boundingBox()
-    expect(box).not.toBeNull()
-    expect(box!.width).toBeGreaterThan(50)
-    expect(box!.height).toBeGreaterThan(50)
   }
 
-  // CRITICAL: no worker-related console errors at any point
+  // Wait for canvas to render (proves the inlined worker executed successfully)
+  const canvas = page.locator('.pagecanvas__canvas').first()
+  await expect(canvas).toBeVisible({ timeout: 30_000 })
+
+  const box = await canvas.boundingBox()
+  expect(box).not.toBeNull()
+  expect(box!.width).toBeGreaterThan(50)
+  expect(box!.height).toBeGreaterThan(50)
+
+  // CRITICAL: no worker-related console errors at any point during the test
   expect(workerErrors, `Worker/blob console errors detected: ${workerErrors.join(' | ')}`).toHaveLength(0)
 })

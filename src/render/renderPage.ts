@@ -4,7 +4,7 @@ import type { PageViewport } from 'pdfjs-dist/types/src/display/page_viewport'
 export interface RenderOptions {
   /** Target on-screen CSS width in px. Height follows the aspect ratio. */
   cssWidth: number
-  /** Extra rotation in degrees applied on top of the page's own rotation. */
+  /** Absolute viewport rotation in degrees. Omit to use the page's own rotation. */
   rotation?: number
   /** Device pixel ratio override (defaults to window.devicePixelRatio). */
   dpr?: number
@@ -36,7 +36,8 @@ export function renderPageToCanvas(
   opts: RenderOptions,
 ): RenderHandle {
   const dpr = opts.dpr ?? (typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1)
-  const rotation = normalizeRotation((page.rotate ?? 0) + (opts.rotation ?? 0))
+  // rotation is absolute (overrides the page's own); omit to use the page default.
+  const rotation = opts.rotation == null ? (page.rotate ?? 0) : normalizeRotation(opts.rotation)
 
   const base = page.getViewport({ scale: 1, rotation })
   const scale = (opts.cssWidth / base.width) * dpr

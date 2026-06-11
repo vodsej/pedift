@@ -21,7 +21,9 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: `npx serve -s -p 4173 "${DIST_DIR}"`,
+    // `serve` rewrites /pedift.html -> /pedift (404); use http-server which
+    // serves files at their exact paths without clean-URL mangling.
+    command: `npx http-server -p 4173 --cors -c-1 "${DIST_DIR}"`,
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

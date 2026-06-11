@@ -46,6 +46,8 @@ const ALLOWED_HOSTS = [
   'purl.org', // Dublin Core metadata namespace
   'example.com', // pdf.js URL-handling placeholders
   'foo.bar', // pdf.js placeholders
+  'github.com', // pdf-lib producer-metadata attribution string
+  'rolldown.rs', // rolldown's dormant __require interop guard message
 ]
 const isAllowed = (u) => {
   if (u.includes('${')) return true // template-literal artifacts (e.g. http://${e})

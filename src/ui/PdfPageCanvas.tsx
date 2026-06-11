@@ -7,11 +7,12 @@ interface Props {
   doc: PDFDocumentProxy
   pageNumber: number // 1-based
   cssWidth: number
+  /** Absolute rotation; omit for the page's own rotation. */
   rotation?: number
 }
 
 /** Renders a single PDF page to a canvas, cancelling stale renders on change. */
-export function PdfPageCanvas({ doc, pageNumber, cssWidth, rotation = 0 }: Props) {
+export function PdfPageCanvas({ doc, pageNumber, cssWidth, rotation }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [rendering, setRendering] = useState(true)
 
