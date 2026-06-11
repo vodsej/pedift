@@ -1,0 +1,27 @@
+{
+  "name": "pedift",
+  "version": "0.1.0",
+  "description": "Single-file, offline, privacy-first PDF editor that runs entirely in the browser",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build && node scripts/postbuild.mjs",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check:singlefile": "node scripts/check-singlefile.mjs",
+    "fixtures": "node scripts/make-fixtures.mjs"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "preact": "^10.29.2"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.5",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}
