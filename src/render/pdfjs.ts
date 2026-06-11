@@ -1,13 +1,19 @@
 import * as pdfjsLib from 'pdfjs-dist'
 import { GlobalWorkerOptions } from 'pdfjs-dist'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
-// `?worker&inline` base64-embeds the pdf.js worker into the bundle and builds it
-// via a blob: URL with a data: URL fallback — the fallback is what makes it run
-// from file:// in the single-file artifact. See vite.config.ts.
-import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker&inline'
+// Build the pdf.js worker from a data: URL (NOT blob:) so it runs from file://.
+// Vite's ?worker&inline only falls back to data: on a *synchronous* throw, but a
+// blob:null worker fails asynchronously on file:// — so the fallback never fires.
+// We construct the data: URL module worker directly (mirrors Vite's known-good fallback).
+import pdfWorkerSource from 'pdfjs-dist/build/pdf.worker.min.mjs?raw'
 import { PdfError, classifyError } from '../core/errors'
 
-GlobalWorkerOptions.workerPort = new PdfWorker()
+function createPdfWorker(): Worker {
+  const url = 'data:text/javascript;charset=utf-8,' + encodeURIComponent(pdfWorkerSource)
+  return new Worker(url, { type: 'module' })
+}
+
+GlobalWorkerOptions.workerPort = createPdfWorker()
 
 export const pdfjsVersion: string = pdfjsLib.version
 

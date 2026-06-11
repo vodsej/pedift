@@ -20,6 +20,12 @@ async function openPdfViaChooser(page: import('@playwright/test').Page, filePath
   await chooser.setFiles(filePath)
 }
 
+async function waitForCanvas(page: import('@playwright/test').Page) {
+  const canvas = page.locator('.pagecanvas__canvas').first()
+  await expect(canvas).toBeVisible({ timeout: 30_000 })
+  return canvas
+}
+
 // ─── a. Loads app ─────────────────────────────────────────────────────────────
 
 test('a. loads app: title and drop zone visible', async ({ page }) => {
@@ -32,12 +38,9 @@ test('a. loads app: title and drop zone visible', async ({ page }) => {
 
 test('b. open + render: plain-3page.pdf renders canvas and status bar', async ({ page }) => {
   await page.goto(APP)
-
   await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
 
-  // Wait for canvas to appear (worker must be running)
-  const canvas = page.locator('.pagecanvas__canvas').first()
-  await expect(canvas).toBeVisible({ timeout: 30_000 })
+  const canvas = await waitForCanvas(page)
 
   // Page actually rendered: bounding box must be substantial
   const box = await canvas.boundingBox()
@@ -54,9 +57,7 @@ test('b. open + render: plain-3page.pdf renders canvas and status bar', async ({
 test('c. save copy: download is a valid PDF', async ({ page }) => {
   await page.goto(APP)
   await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
-
-  // Wait until the document is rendered before saving
-  await expect(page.locator('.pagecanvas__canvas').first()).toBeVisible({ timeout: 30_000 })
+  await waitForCanvas(page)
 
   // Set up download listener BEFORE clicking Save
   const downloadPromise = page.waitForEvent('download')
@@ -89,13 +90,15 @@ test('d. password: wrong password shows error, correct password opens document',
   // Error should appear
   await expect(page.locator('.form-error')).toBeVisible({ timeout: 10_000 })
 
+  // Dialog may close and re-open; wait for it to be visible again
+  await expect(dialog).toBeVisible({ timeout: 5_000 })
+
   // Now type correct password
   await dialog.locator('input[type="password"]').fill('test1234')
   await dialog.getByRole('button', { name: /unlock/i }).click()
 
   // Workspace should render
-  const canvas = page.locator('.pagecanvas__canvas').first()
-  await expect(canvas).toBeVisible({ timeout: 30_000 })
+  await waitForCanvas(page)
   await expect(page.locator('.stage__statusbar')).toContainText('of 1')
 })
 
@@ -179,4 +182,35 @@ test('e. file:// worker-offline: pdf.js worker runs with no worker/blob console 
 
   // CRITICAL: no worker-related console errors at any point during the test
   expect(workerErrors, `Worker/blob console errors detected: ${workerErrors.join(' | ')}`).toHaveLength(0)
+})
+
+// ─── f. Phase-2 smoke: rotate + save exercises @cantoo/pdf-lib in the browser ─
+
+test('f. phase-2 rotate+save: pdf-lib runs in-browser, download is valid PDF', async ({ page }) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
+  await waitForCanvas(page)
+
+  // Select the first page card (this reveals the rotate action buttons)
+  await page.locator('.pagecard__btn').first().click()
+
+  // Rotate right should now be visible
+  await expect(page.getByRole('button', { name: /rotate right/i })).toBeVisible({ timeout: 5_000 })
+  await page.getByRole('button', { name: /rotate right/i }).click()
+
+  // Wait a tick for the edit to register
+  await page.waitForTimeout(300)
+
+  // Download the saved file
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: /save/i }).click()
+  const download = await downloadPromise
+
+  const filePath = await download.path()
+  expect(filePath).not.toBeNull()
+
+  const data = fs.readFileSync(filePath!)
+  expect(data.length).toBeGreaterThan(500)
+  const header = data.slice(0, 5).toString('ascii')
+  expect(header).toBe('%PDF-')
 })

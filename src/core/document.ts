@@ -12,6 +12,7 @@ import {
   setCrop,
 } from './pages'
 import { buildPdf, buildSubset, buildSplit, type BuildContext } from './save'
+import { createBakeAssets, bakeObjects, type BakeAssets } from './bake'
 
 export interface ImageAsset {
   bytes: Uint8Array
@@ -212,8 +213,22 @@ export class EditorDocument {
   }
 
   // ---- build context & save ----
+  /** A bakePage hook that draws this document's overlay objects onto each page. */
+  private bakeHook(): Pick<BuildContext, 'bakePage'> {
+    const overlays = this.state.overlays
+    const images = this.images
+    let assets: BakeAssets | null = null
+    return {
+      bakePage: async (out, page, pageId) => {
+        const objs = overlays[pageId]
+        if (!objs || objs.length === 0) return
+        if (!assets) assets = createBakeAssets(out, images)
+        await bakeObjects(page, objs, assets)
+      },
+    }
+  }
   buildContext(extra?: Partial<BuildContext>): BuildContext {
-    return { sources: this.sources, ...extra }
+    return { sources: this.sources, ...this.bakeHook(), ...extra }
   }
   build(extra?: Partial<BuildContext>): Promise<Uint8Array> {
     return buildPdf(this.state, this.buildContext(extra))
