@@ -3,7 +3,7 @@ import type { JSX } from 'preact'
 import { Dialog } from '../components/Dialog'
 import { Button } from '../components/Button'
 import { SegmentedControl, TextInput } from '../components/controls'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 import { addSignature, getSignatures } from '../signatureStore'
 import '../styles/annotate.css'
 

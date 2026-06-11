@@ -1,6 +1,6 @@
 import { useToasts, dismissToast } from '../toast'
 import { IconCheck, IconAlert, IconInfo, IconClose } from '../icons'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 
 export function ToastHost() {
   const toasts = useToasts()

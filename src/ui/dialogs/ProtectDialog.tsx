@@ -5,7 +5,7 @@ import { Button } from '../components/Button'
 import { Field, TextInput, SegmentedControl } from '../components/controls'
 import { IconShield } from '../icons'
 import { toast } from '../toast'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 import '../styles/docdialogs.css'
 
 type Mode = 'addPassword' | 'removePassword'

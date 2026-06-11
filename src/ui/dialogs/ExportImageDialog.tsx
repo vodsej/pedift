@@ -9,7 +9,7 @@ import { IconImage } from '../icons'
 import { downloadBlob, withSuffix } from '../../io/fileio'
 import { friendlyMessage } from '../../core/errors'
 import { toast } from '../toast'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'preact/hooks'
 import type { EditorDocument } from '../core/document'
 import { rectViewToPdf, displayHeightCss, type PageGeometry, type ViewRect } from './geometry'
-import { t } from '../strings/en'
+import { t } from '../strings'
 
 type Corner = 'nw' | 'ne' | 'sw' | 'se'
 type Drag =

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'preact/hooks'
 import type { ComponentChildren } from 'preact'
 import { IconButton } from './Button'
 import { IconClose } from '../icons'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 
 interface DialogProps {
   title: string

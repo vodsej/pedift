@@ -1,6 +1,7 @@
 import { DropZone } from './components/DropZone'
 import { Spinner } from './components/Spinner'
 import { ThemeToggle } from './ThemeToggle'
+import { LangToggle } from './LangToggle'
 import {
   IconUpload,
   IconMerge,
@@ -11,7 +12,7 @@ import {
   IconDownload,
 } from './icons'
 import type { Theme } from './theme'
-import { t } from '../strings/en'
+import { t, type Locale } from '../strings'
 import { downloadBlob } from '../io/fileio'
 import logoUrl from './assets/logo.png'
 
@@ -20,17 +21,27 @@ export type QuickToolId = 'merge' | 'images' | 'compress' | 'protect'
 interface Props {
   theme: Theme
   onToggleTheme: () => void
+  locale: Locale
+  onSetLocale: (locale: Locale) => void
   onOpenFile: (file: File) => void
   opening: boolean
   onQuickTool?: (id: QuickToolId) => void
 }
 
-const TOOLS: Array<{ id: QuickToolId; icon: preact.ComponentChildren; title: string; desc: string }> = [
-  { id: 'merge', icon: <IconMerge size={24} />, title: t.quickTools.merge.title, desc: t.quickTools.merge.desc },
-  { id: 'images', icon: <IconImage size={24} />, title: t.quickTools.imagesToPdf.title, desc: t.quickTools.imagesToPdf.desc },
-  { id: 'compress', icon: <IconCompress size={24} />, title: t.quickTools.compress.title, desc: t.quickTools.compress.desc },
-  { id: 'protect', icon: <IconLock size={24} />, title: t.quickTools.protect.title, desc: t.quickTools.protect.desc },
-]
+// Built per-render (not module-level) so the labels follow the active locale.
+function quickTools(): Array<{
+  id: QuickToolId
+  icon: preact.ComponentChildren
+  title: string
+  desc: string
+}> {
+  return [
+    { id: 'merge', icon: <IconMerge size={24} />, title: t.quickTools.merge.title, desc: t.quickTools.merge.desc },
+    { id: 'images', icon: <IconImage size={24} />, title: t.quickTools.imagesToPdf.title, desc: t.quickTools.imagesToPdf.desc },
+    { id: 'compress', icon: <IconCompress size={24} />, title: t.quickTools.compress.title, desc: t.quickTools.compress.desc },
+    { id: 'protect', icon: <IconLock size={24} />, title: t.quickTools.protect.title, desc: t.quickTools.protect.desc },
+  ]
+}
 
 async function handleSavePage() {
   let html: string
@@ -51,7 +62,15 @@ async function handleSavePage() {
   downloadBlob(blob, 'pedift.html')
 }
 
-export function Landing({ theme, onToggleTheme, onOpenFile, opening, onQuickTool }: Props) {
+export function Landing({
+  theme,
+  onToggleTheme,
+  locale,
+  onSetLocale,
+  onOpenFile,
+  opening,
+  onQuickTool,
+}: Props) {
   return (
     <div class="landing">
       <header class="landing__top">
@@ -63,6 +82,7 @@ export function Landing({ theme, onToggleTheme, onOpenFile, opening, onQuickTool
           <span class="privacy-badge" data-tooltip={t.privacy.line}>
             <IconShield size={15} /> {t.privacy.badge}
           </span>
+          <LangToggle locale={locale} onSelect={onSetLocale} />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         </div>
       </header>
@@ -96,7 +116,7 @@ export function Landing({ theme, onToggleTheme, onOpenFile, opening, onQuickTool
             <p class="quicktools__hint">{t.landing.quickToolsHint}</p>
           </div>
           <div class="quicktools__grid">
-            {TOOLS.map((tool) => (
+            {quickTools().map((tool) => (
               <button
                 key={tool.id}
                 type="button"

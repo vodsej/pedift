@@ -1,7 +1,7 @@
 import { IconButton } from './components/Button'
 import { IconSun, IconMoon } from './icons'
 import type { Theme } from './theme'
-import { t } from '../strings/en'
+import { t } from '../strings'
 
 export function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
   const dark = theme === 'dark'

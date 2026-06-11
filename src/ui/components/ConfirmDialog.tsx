@@ -1,7 +1,7 @@
 import { Dialog } from './Dialog'
 import { Button } from './Button'
 import { IconAlert } from '../icons'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 
 interface Props {
   title: string

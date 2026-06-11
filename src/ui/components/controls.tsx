@@ -1,5 +1,5 @@
 import type { JSX, ComponentChildren } from 'preact'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 
 export function Field({
   label,

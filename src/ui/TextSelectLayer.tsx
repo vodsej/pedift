@@ -13,7 +13,7 @@ import {
 import { nextZ, newWhiteout, newText } from '../overlay/model'
 import { defaultToolOptions } from '../overlay/tools'
 import { toast } from './toast'
-import { t } from '../strings/en'
+import { t } from '../strings'
 
 const NOTE_KEY = 'pedift.replaceTextNoteSeen'
 

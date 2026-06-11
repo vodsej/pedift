@@ -12,7 +12,7 @@ import { IconInsert, IconFile } from '../icons'
 import { fileToBytes, formatBytes } from '../../io/fileio'
 import { friendlyMessage } from '../../core/errors'
 import { toast } from '../toast'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 
 type Which = 'all' | 'some'
 

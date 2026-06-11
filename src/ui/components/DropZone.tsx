@@ -1,7 +1,7 @@
 import { useRef, useState } from 'preact/hooks'
 import type { ComponentChildren } from 'preact'
 import { pickFiles, ACCEPT_PDF, ACCEPT_IMAGE, isPdfFile, isImageFile } from '../../io/fileio'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 
 type Accept = 'pdf' | 'image' | 'any'
 

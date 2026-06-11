@@ -53,7 +53,9 @@ Saving **rebuilds from fresh** (`src/core/save.ts`): a new `PDFDocument.create()
 
 ### Strings
 
-All user-facing text goes through `t` from `src/strings/en.ts` (the single future-localization swap point). The convention is not lint-enforced — follow it anyway; don't hardcode UI strings in components.
+All user-facing text goes through `t` imported from `src/strings` (the index module). The convention is not lint-enforced — follow it anyway; don't hardcode UI strings in components.
+
+Localization lives in `src/strings/`: `en.ts` is the canonical table whose shape (`Strings`) every locale must satisfy (`en` is intentionally *not* `as const` so locales can supply their own text); `cs.ts` is the Czech table; `index.ts` holds the active locale and exports `t` as a **live ES binding** that `setLocale` reassigns. Components read `t.x.y` at render time, so a single forced re-render at the app root (`useLocale` in `App.tsx`) cascades a locale change through the whole tree. To add a locale: add `<code>.ts` satisfying `Strings`, register it in `index.ts` (`tables`, `LOCALES`, `Locale`, detection), and extend `LangToggle`. **Gotcha:** never capture `t.*` into a module-level `const` — it freezes the value at the boot locale; build such lists inside the component instead (see `quickTools()` in `Landing.tsx`).
 
 ### Single-file build rules
 

@@ -11,7 +11,7 @@ import {
   IconLayers,
   IconInfo,
 } from './icons'
-import { t } from '../strings/en'
+import { t } from '../strings'
 
 export type DocAction =
   | 'forms'

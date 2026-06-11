@@ -5,7 +5,7 @@ import { Button } from '../components/Button'
 import { Field, TextInput, Slider, ColorInput, SegmentedControl } from '../components/controls'
 import { IconWatermark } from '../icons'
 import { toast } from '../toast'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 import '../styles/docdialogs.css'
 
 type RangeMode = 'all' | 'range'

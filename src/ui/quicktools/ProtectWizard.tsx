@@ -9,7 +9,7 @@ import { toast } from '../toast'
 import { friendlyMessage } from '../../core/errors'
 import { addPassword, removePassword } from '../../core/crypto'
 import { fileToBytes, downloadBytes, formatBytes, withSuffix } from '../../io/fileio'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 import '../styles/docdialogs.css'
 
 type Mode = 'addPassword' | 'removePassword'

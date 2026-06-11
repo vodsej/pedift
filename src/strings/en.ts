@@ -1,6 +1,7 @@
 /*
- * All user-facing English strings live here. Centralized so other languages can
- * be added later without touching component code. Import `t` everywhere.
+ * All user-facing English strings live here. This is the canonical table whose
+ * shape (`Strings`) every other locale must satisfy. Don't import from here in
+ * components — import `t` from `src/strings` so the active locale is honored.
  * Functions are used for strings that interpolate values.
  */
 
@@ -16,6 +17,13 @@ export const en = {
   theme: {
     toLight: 'Switch to light mode',
     toDark: 'Switch to dark mode',
+  },
+
+  language: {
+    label: 'Language',
+    english: 'English',
+    czech: 'Čeština',
+    switchTo: 'Change language',
   },
 
   landing: {
@@ -337,9 +345,12 @@ export const en = {
     noPages: 'No pages to show.',
     noDocument: 'Open a PDF to start editing.',
   },
-} as const
+}
 
+/**
+ * The shape every locale table must satisfy. Derived from the English table so
+ * a translation can never drift out of sync without a type error. Note `en` is
+ * intentionally NOT `as const`: that keeps field types widened to `string`, so
+ * other locales can supply their own text instead of the English literals.
+ */
 export type Strings = typeof en
-
-/** The active string table. Swap here when adding languages. */
-export const t: Strings = en

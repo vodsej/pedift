@@ -6,26 +6,11 @@ import { Button } from '../components/Button'
 import { Field, Select, TextInput, SegmentedControl } from '../components/controls'
 import { IconHash } from '../icons'
 import { toast } from '../toast'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 import '../styles/docdialogs.css'
 
 type RangeMode = 'all' | 'range'
 type FormatOption = 'plain' | 'slash' | 'long'
-
-const POSITION_OPTIONS: { value: PageNumberPosition; label: string }[] = [
-  { value: 'top-left', label: t.dialogs.pageNumbers.topLeft },
-  { value: 'top-center', label: t.dialogs.pageNumbers.topCenter },
-  { value: 'top-right', label: t.dialogs.pageNumbers.topRight },
-  { value: 'bottom-left', label: t.dialogs.pageNumbers.bottomLeft },
-  { value: 'bottom-center', label: t.dialogs.pageNumbers.bottomCenter },
-  { value: 'bottom-right', label: t.dialogs.pageNumbers.bottomRight },
-]
-
-const FORMAT_OPTIONS: { value: FormatOption; label: string }[] = [
-  { value: 'plain', label: t.dialogs.pageNumbers.formatPlain },
-  { value: 'slash', label: t.dialogs.pageNumbers.formatSlash },
-  { value: 'long', label: t.dialogs.pageNumbers.formatLong },
-]
 
 export function PageNumbersDialog({
   editor,
@@ -34,6 +19,21 @@ export function PageNumbersDialog({
   editor: EditorDocument
   onClose: () => void
 }) {
+  // Built per-render so the labels follow the active locale.
+  const positionOptions: { value: PageNumberPosition; label: string }[] = [
+    { value: 'top-left', label: t.dialogs.pageNumbers.topLeft },
+    { value: 'top-center', label: t.dialogs.pageNumbers.topCenter },
+    { value: 'top-right', label: t.dialogs.pageNumbers.topRight },
+    { value: 'bottom-left', label: t.dialogs.pageNumbers.bottomLeft },
+    { value: 'bottom-center', label: t.dialogs.pageNumbers.bottomCenter },
+    { value: 'bottom-right', label: t.dialogs.pageNumbers.bottomRight },
+  ]
+  const formatOptions: { value: FormatOption; label: string }[] = [
+    { value: 'plain', label: t.dialogs.pageNumbers.formatPlain },
+    { value: 'slash', label: t.dialogs.pageNumbers.formatSlash },
+    { value: 'long', label: t.dialogs.pageNumbers.formatLong },
+  ]
+
   const [position, setPosition] = useState<PageNumberPosition>('bottom-center')
   const [format, setFormat] = useState<FormatOption>('plain')
   const [startAt, setStartAt] = useState('1')
@@ -76,7 +76,7 @@ export function PageNumbersDialog({
         <Select
           value={position}
           onChange={(v) => setPosition(v as PageNumberPosition)}
-          options={POSITION_OPTIONS}
+          options={positionOptions}
         />
       </Field>
 
@@ -84,7 +84,7 @@ export function PageNumbersDialog({
         <Select
           value={format}
           onChange={(v) => setFormat(v as FormatOption)}
-          options={FORMAT_OPTIONS}
+          options={formatOptions}
         />
       </Field>
 
