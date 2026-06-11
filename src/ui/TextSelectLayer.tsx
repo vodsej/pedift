@@ -9,10 +9,10 @@ import {
   displayHeightCss,
   rotatedSizePts,
   type PageGeometry,
-} from './geometry'
-import { nextZ, newWhiteout, newText } from './model'
-import { defaultToolOptions } from './tools'
-import { toast } from '../ui/toast'
+} from '../overlay/geometry'
+import { nextZ, newWhiteout, newText } from '../overlay/model'
+import { defaultToolOptions } from '../overlay/tools'
+import { toast } from './toast'
 import { t } from '../strings/en'
 
 const NOTE_KEY = 'pedift.replaceTextNoteSeen'

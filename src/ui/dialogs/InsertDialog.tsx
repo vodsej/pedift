@@ -141,7 +141,7 @@ export function InsertDialog({
           {which === 'some' && (
             <Field label={t.dialogs.insert.somePages}>
               <TextInput
-                placeholder="1-3, 5"
+                placeholder={t.dialogs.insert.somePagesPlaceholder}
                 value={someRanges}
                 onInput={(e) => setSomeRanges((e.target as HTMLInputElement).value)}
               />

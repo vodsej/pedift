@@ -124,9 +124,9 @@ function ContextOptions({
             value={options.font}
             onChange={(v) => setOptions({ ...options, font: v as ToolOptions['font'] })}
             options={[
-              { value: 'Helvetica', label: 'Helvetica' },
-              { value: 'TimesRoman', label: 'Times' },
-              { value: 'Courier', label: 'Courier' },
+              { value: 'Helvetica', label: t.tools.fontHelvetica },
+              { value: 'TimesRoman', label: t.tools.fontTimes },
+              { value: 'Courier', label: t.tools.fontCourier },
             ]}
           />
         </Field>
@@ -264,7 +264,7 @@ export function AnnotateToolbar(props: AnnotateToolbarProps): JSX.Element {
   const shapesActive = SHAPE_TOOLS.includes(tool)
 
   return (
-    <div class="annotate-toolbar" role="toolbar" aria-label="Annotation tools">
+    <div class="annotate-toolbar" role="toolbar" aria-label={t.tools.annotationToolbarAriaLabel}>
       <IconButton
         label={t.tools.select}
         active={tool === 'select'}

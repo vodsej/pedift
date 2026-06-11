@@ -1,4 +1,5 @@
 import type { JSX, ComponentChildren } from 'preact'
+import { t } from '../../strings/en'
 
 export function Field({
   label,
@@ -90,7 +91,7 @@ export function ColorInput({
         type="color"
         value={value}
         onInput={(e) => onChange((e.target as HTMLInputElement).value)}
-        aria-label="Color"
+        aria-label={t.tools.colorAriaLabel}
       />
     </span>
   )

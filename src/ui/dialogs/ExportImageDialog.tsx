@@ -81,10 +81,10 @@ export function ExportImageDialog({
           value={scale}
           onChange={setScale}
           options={[
-            { value: '1', label: '1× (72 dpi)' },
-            { value: '2', label: '2× (144 dpi)' },
-            { value: '3', label: '3× (216 dpi)' },
-            { value: '4', label: '4× (288 dpi)' },
+            { value: '1', label: t.dialogs.exportImage.scale1x },
+            { value: '2', label: t.dialogs.exportImage.scale2x },
+            { value: '3', label: t.dialogs.exportImage.scale3x },
+            { value: '4', label: t.dialogs.exportImage.scale4x },
           ]}
         />
       </Field>
