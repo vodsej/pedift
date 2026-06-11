@@ -1,0 +1,144 @@
+/* ─── Annotate Toolbar ─────────────────────────────────────────────────────── */
+
+.annotate-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+/* Vertical divider between logical groups */
+.annotate-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  flex-shrink: 0;
+  margin: 0 var(--space-1);
+}
+
+/* Options section pushed to the right */
+.annotate-options {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.annotate-options .field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.annotate-options .field__label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.annotate-options .slider {
+  width: 72px;
+}
+
+.annotate-options .input.select {
+  font-size: 0.8125rem;
+  padding-block: 3px;
+  height: auto;
+}
+
+/* Fill toggle button in options area */
+.annotate-fill-toggle {
+  font-size: 0.75rem;
+  gap: var(--space-1);
+}
+
+/* ─── Tool Menus (shapes / stamp popover) ──────────────────────────────────── */
+
+.tool-menu-wrap {
+  position: relative;
+}
+
+.tool-menu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  z-index: 200;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 140px;
+  white-space: nowrap;
+}
+
+.tool-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  text-align: left;
+  transition: background var(--transition);
+}
+
+.tool-menu__item:hover,
+.tool-menu__item:focus-visible {
+  background: var(--accent-soft);
+  outline: none;
+}
+
+.tool-menu__item.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ─── Signature Dialog ─────────────────────────────────────────────────────── */
+
+.sig-modeswitch {
+  margin-bottom: var(--space-3);
+}
+
+.sig-canvas-wrap {
+  margin-bottom: var(--space-3);
+}
+
+.sig-canvas {
+  display: block;
+  width: 100%;
+  border: 1px dashed var(--border-strong, var(--border));
+  border-radius: var(--radius);
+  background: #fff;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.sig-canvas--type {
+  cursor: default;
+}
+
+.sig-type-input {
+  margin-bottom: var(--space-3);
+}
+
+.sig-clear-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-2);
+}

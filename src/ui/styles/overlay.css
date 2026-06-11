@@ -1,0 +1,71 @@
+/* Interactive overlay editing layer (src/overlay/OverlayLayer.tsx) */
+.overlay-host {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  touch-action: none;
+}
+.overlay--draw {
+  cursor: crosshair;
+}
+.overlay-obj {
+  box-sizing: border-box;
+}
+.overlay-text {
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-ui);
+}
+.overlay-text-edit {
+  border: 1px solid var(--accent);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0;
+  margin: 0;
+  resize: none;
+  outline: none;
+  font-family: var(--font-ui);
+  overflow: hidden;
+  box-sizing: border-box;
+  z-index: 5;
+}
+html[data-theme='dark'] .overlay-text-edit {
+  background: rgba(20, 26, 38, 0.92);
+}
+.overlay-stamp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  font-family: var(--font-ui);
+}
+.overlay-obj.is-selected {
+  outline: 1px solid var(--accent);
+}
+.overlay-highlight {
+  pointer-events: auto;
+}
+.overlay-selbox {
+  border: 1.5px solid var(--accent);
+  pointer-events: none;
+  box-sizing: border-box;
+  z-index: 4;
+}
+.overlay-handle {
+  width: 11px;
+  height: 11px;
+  transform: translate(-5.5px, -5.5px);
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: 2px;
+  cursor: nwse-resize;
+  z-index: 6;
+  touch-action: none;
+}

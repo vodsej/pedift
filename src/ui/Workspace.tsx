@@ -6,11 +6,16 @@ import { ConfirmDialog } from './components/ConfirmDialog'
 import { ThemeToggle } from './ThemeToggle'
 import { PagesPanel } from './PagesPanel'
 import { PageStage } from './PageStage'
+import { AnnotateToolbar } from './AnnotateToolbar'
+import { OverlayLayer } from '../overlay/OverlayLayer'
 import { SplitDialog } from './dialogs/SplitDialog'
 import { InsertDialog } from './dialogs/InsertDialog'
 import { ExportImageDialog } from './dialogs/ExportImageDialog'
+import { SignatureDialog } from './dialogs/SignatureDialog'
 import { useEditorState } from './hooks/useEditor'
 import { useElementWidth } from './hooks/useElementWidth'
+import { defaultToolOptions, type ToolId, type ToolOptions, type InsertRequest } from '../overlay/tools'
+import { detectImageFormat } from '../core/imagesToPdf'
 import {
   IconChevronLeft,
   IconZoomIn,
@@ -21,7 +26,15 @@ import {
   IconUndo,
   IconRedo,
 } from './icons'
-import { downloadBytes, editedFilename, withSuffix } from '../io/fileio'
+import {
+  downloadBytes,
+  editedFilename,
+  withSuffix,
+  pickFiles,
+  fileToBytes,
+  loadImageSize,
+  ACCEPT_IMAGE,
+} from '../io/fileio'
 import { friendlyMessage } from '../core/errors'
 import { toast } from './toast'
 import type { Theme } from './theme'
@@ -53,6 +66,13 @@ export function Workspace({ editor, registry, fileName, theme, onToggleTheme, on
   const [saving, setSaving] = useState(false)
   const [stageRef, stageWidth] = useElementWidth<HTMLDivElement>()
 
+  // Overlay editing state.
+  const [tool, setTool] = useState<ToolId>('select')
+  const [toolOptions, setToolOptions] = useState<ToolOptions>(defaultToolOptions())
+  const [overlaySel, setOverlaySel] = useState<string | null>(null)
+  const [insertRequest, setInsertRequest] = useState<InsertRequest | null>(null)
+  const [showSignature, setShowSignature] = useState(false)
+
   // Keep `current` valid as pages change (delete/reorder).
   useEffect(() => {
     if (!current || !pages.some((p) => p.id === current)) {
@@ -64,6 +84,44 @@ export function Workspace({ editor, registry, fileName, theme, onToggleTheme, on
     () => pages.find((p) => p.id === current) ?? pages[0] ?? null,
     [pages, current],
   )
+
+  // Overlay selection is per-page; clear it when the viewed page changes.
+  useEffect(() => {
+    setOverlaySel(null)
+  }, [currentDescriptor?.id])
+
+  const insertImage = async () => {
+    const files = await pickFiles({ accept: ACCEPT_IMAGE })
+    const file = files[0]
+    if (!file) return
+    try {
+      const bytes = await fileToBytes(file)
+      const format = detectImageFormat(bytes)
+      const { width, height } = await loadImageSize(bytes, format)
+      const imageKey = editor.addImage({ bytes, format, width, height })
+      setTool('select')
+      setInsertRequest({ kind: 'image', imageKey, format, aspect: width / Math.max(1, height) })
+    } catch (err) {
+      toast.error(friendlyMessage(err))
+    }
+  }
+
+  const placeSignature = (pngBytes: Uint8Array, aspect: number) => {
+    const imageKey = editor.addImage({
+      bytes: pngBytes,
+      format: 'png',
+      width: Math.round(aspect * 120),
+      height: 120,
+    })
+    setShowSignature(false)
+    setTool('select')
+    setInsertRequest({ kind: 'signature', imageKey, aspect })
+  }
+
+  const placeStamp = (text: string) => {
+    setTool('select')
+    setInsertRequest({ kind: 'stamp', text, color: '#c0392b', fontSize: 28 })
+  }
 
   const baseWidth = Math.max(220, stageWidth - PAGE_PADDING)
   const cssWidth = Math.round(baseWidth * zoom)
@@ -177,6 +235,16 @@ export function Workspace({ editor, registry, fileName, theme, onToggleTheme, on
         </div>
       </header>
 
+      <AnnotateToolbar
+        tool={tool}
+        setTool={setTool}
+        options={toolOptions}
+        setOptions={setToolOptions}
+        onInsertImage={insertImage}
+        onSignature={() => setShowSignature(true)}
+        onStamp={placeStamp}
+      />
+
       <div class="workspace__body">
         <aside class="sidebar">
           <PagesPanel
@@ -197,7 +265,25 @@ export function Workspace({ editor, registry, fileName, theme, onToggleTheme, on
         <main class="stage" ref={stageRef}>
           <div class="stage__scroll">
             {currentDescriptor && (
-              <PageStage registry={registry} descriptor={currentDescriptor} cssWidth={cssWidth} />
+              <PageStage
+                registry={registry}
+                descriptor={currentDescriptor}
+                cssWidth={cssWidth}
+                renderOverlay={(geometry) => (
+                  <OverlayLayer
+                    editor={editor}
+                    pageId={currentDescriptor.id}
+                    geometry={geometry}
+                    tool={tool}
+                    options={toolOptions}
+                    selectedId={overlaySel}
+                    setSelectedId={setOverlaySel}
+                    onPlaced={() => setTool('select')}
+                    insertRequest={insertRequest}
+                    onInsertConsumed={() => setInsertRequest(null)}
+                  />
+                )}
+              />
             )}
           </div>
           <div class="stage__statusbar">
@@ -238,6 +324,9 @@ export function Workspace({ editor, registry, fileName, theme, onToggleTheme, on
           fileName={fileName}
           onClose={() => setDialog(null)}
         />
+      )}
+      {showSignature && (
+        <SignatureDialog onClose={() => setShowSignature(false)} onConfirm={placeSignature} />
       )}
     </div>
   )

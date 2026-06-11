@@ -84,6 +84,28 @@ export function withSuffix(original: string, suffix: string, ext = '.pdf'): stri
   return `${base || 'document'}${suffix}${ext}`
 }
 
+/** Decodes an image's natural pixel size from its bytes. */
+export function loadImageSize(
+  bytes: Uint8Array,
+  format: 'png' | 'jpg',
+): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const mime = format === 'png' ? 'image/png' : 'image/jpeg'
+    const url = URL.createObjectURL(new Blob([bytes.slice().buffer as ArrayBuffer], { type: mime }))
+    const img = new Image()
+    img.onload = () => {
+      const out = { width: img.naturalWidth, height: img.naturalHeight }
+      URL.revokeObjectURL(url)
+      resolve(out)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Could not load image'))
+    }
+    img.src = url
+  })
+}
+
 export function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`
