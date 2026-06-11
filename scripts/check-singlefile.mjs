@@ -36,19 +36,23 @@ const stripComments = (s) =>
 
 const code = stripComments(html)
 
-// Well-known XML namespace URIs are identifiers, never fetched — allowlist them.
-const NS_ALLOWLIST = [
-  'http://www.w3.org/2000/svg',
-  'http://www.w3.org/1998/Math/MathML',
-  'http://www.w3.org/1999/xhtml',
-  'http://www.w3.org/1999/xlink',
-  'http://www.w3.org/XML/1998/namespace',
-  'http://www.w3.org/2000/xmlns/',
-  // PDF/XMP metadata namespaces that may appear in embedded sample data
-  'http://ns.adobe.com/',
-  'http://purl.org/dc/',
+// XML namespace / schema URIs and library placeholder hosts are string constants
+// baked into pdf.js and Preact — they are identifiers, never fetched. Allowlist by
+// host so the guard still catches a real CDN/font/script URL.
+const ALLOWED_HOSTS = [
+  'www.w3.org', // SVG / MathML / XHTML / XSL / xmldsig namespaces
+  'www.xfa.org', // XFA form schemas inside pdf.js
+  'ns.adobe.com', // XDP / XMP / XFDF namespaces inside pdf.js
+  'purl.org', // Dublin Core metadata namespace
+  'example.com', // pdf.js URL-handling placeholders
+  'foo.bar', // pdf.js placeholders
 ]
-const isAllowed = (u) => NS_ALLOWLIST.some((ns) => u.startsWith(ns))
+const isAllowed = (u) => {
+  if (u.includes('${')) return true // template-literal artifacts (e.g. http://${e})
+  const m = u.match(/^(?:https?:|wss?:)\/\/([^/]+)/)
+  const host = m ? m[1] : ''
+  return ALLOWED_HOSTS.some((h) => host === h || host.endsWith('.' + h) || host === 'www.' + h)
+}
 
 // remote protocol references that would require the network
 const remote = (code.match(/(https?:|wss?:)\/\/[^\s"'`)]+/g) || []).filter((u) => !isAllowed(u))

@@ -27,10 +27,5 @@ export default defineConfig({
     cssCodeSplit: false,
     reportCompressedSize: false,
     chunkSizeWarningLimit: 8000,
-    rollupOptions: {
-      output: {
-        inlineDynamicImports: true,
-      },
-    },
   },
 })
