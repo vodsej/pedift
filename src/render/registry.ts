@@ -36,6 +36,14 @@ export class RenderRegistry {
     return p
   }
 
+  /** Forget a source's cached document so the next get() re-opens its (new) bytes. */
+  async evict(sourceId: string): Promise<void> {
+    const doc = this.docs.get(sourceId)
+    this.docs.delete(sourceId)
+    this.pending.delete(sourceId)
+    if (doc) await destroyPdf(doc)
+  }
+
   async destroy(): Promise<void> {
     for (const doc of this.docs.values()) await destroyPdf(doc)
     this.docs.clear()

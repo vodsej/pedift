@@ -184,6 +184,65 @@ test('e. file:// worker-offline: pdf.js worker runs with no worker/blob console 
   expect(workerErrors, `Worker/blob console errors detected: ${workerErrors.join(' | ')}`).toHaveLength(0)
 })
 
+// ─── g. Phase-3: add text box, save, text is baked into the PDF ──────────────
+
+test('g. phase-3: add a text box, save, text is baked into the PDF', async ({ page }) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
+  await waitForCanvas(page)
+
+  // 1. Select the Text tool (aria-label is exactly "Text box")
+  await page.getByRole('button', { name: 'Text box' }).click()
+
+  // 2. Click the overlay surface to place a default-size text box
+  await page.locator('.overlay').click({ position: { x: 140, y: 140 } })
+
+  // 3. A textarea should appear immediately (the object enters edit mode on place)
+  const ta = page.locator('textarea.overlay-text-edit')
+  await ta.waitFor({ timeout: 5_000 })
+  await ta.fill('PEDIFTOK123')
+  // Escape blurs → commits the text into the overlay model
+  await page.keyboard.press('Escape')
+
+  // 4. Save and capture the download
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: /save/i }).click()
+  const download = await downloadPromise
+
+  const savedPath = await download.path()
+  expect(savedPath).not.toBeNull()
+
+  const data = fs.readFileSync(savedPath!)
+  expect(data.length).toBeGreaterThan(500)
+  expect(data.slice(0, 5).toString('ascii')).toBe('%PDF-')
+
+  // 5. Verify 'PEDIFTOK123' is baked as real text in the saved PDF using pdfjs-dist
+  //    legacy build (no bundler required, worker pointed at the local .mjs file).
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
+  const workerPath = path.resolve(
+    __dirname,
+    '../../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs',
+  )
+  pdfjs.GlobalWorkerOptions.workerSrc = `file://${workerPath}`
+
+  const docLoadTask = pdfjs.getDocument({
+    data: new Uint8Array(data),
+    useWorkerFetch: false,
+    isEvalSupported: false,
+    useSystemFonts: false,
+  })
+  const pdfDoc = await docLoadTask.promise
+
+  let extractedText = ''
+  for (let i = 1; i <= pdfDoc.numPages; i++) {
+    const pg = await pdfDoc.getPage(i)
+    const content = await pg.getTextContent()
+    extractedText += content.items.map((it: { str: string }) => it.str).join(' ')
+  }
+
+  expect(extractedText).toContain('PEDIFTOK123')
+})
+
 // ─── f. Phase-2 smoke: rotate + save exercises @cantoo/pdf-lib in the browser ─
 
 test('f. phase-2 rotate+save: pdf-lib runs in-browser, download is valid PDF', async ({ page }) => {

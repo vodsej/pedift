@@ -13,6 +13,9 @@ import {
 } from './pages'
 import { buildPdf, buildSubset, buildSplit, type BuildContext } from './save'
 import { createBakeAssets, bakeObjects, type BakeAssets } from './bake'
+import { applyPageNumbers } from './pageNumbers'
+import { applyWatermark } from './watermark'
+import type { PageNumbersConfig, WatermarkConfig, ProtectConfig } from './types'
 
 export interface ImageAsset {
   bytes: Uint8Array
@@ -203,6 +206,45 @@ export class EditorDocument {
   setMetadata(meta: Metadata): void {
     this.update((s) => ({ ...s, metadata: { ...meta } }))
   }
+  setPageNumbers(cfg: PageNumbersConfig | null): void {
+    this.update((s) => ({ ...s, pageNumbers: cfg }))
+  }
+  setWatermark(cfg: WatermarkConfig | null): void {
+    this.update((s) => ({ ...s, watermark: cfg }))
+  }
+  setProtect(cfg: ProtectConfig | null): void {
+    this.update((s) => ({ ...s, protect: cfg }))
+  }
+
+  /**
+   * Replace the document's base bytes (e.g. after filling/flattening a form),
+   * resetting pages/overlays to the new document. Pushed as an undoable snapshot.
+   * Returns the loaded page count. The caller must evict the source from any
+   * RenderRegistry so it re-opens the new bytes.
+   */
+  async rebase(bytes: Uint8Array, password?: string): Promise<void> {
+    let doc: PDFDocument
+    try {
+      doc = await PDFDocument.load(bytes, { password, updateMetadata: false })
+    } catch (err) {
+      throw classifyError(err)
+    }
+    const pages = doc.getPages()
+    this.sources.set('original', { id: 'original', kind: 'pdf', bytes, name: this.fileName, password })
+    const descriptors = descriptorsForSource('original', pages.length, (i) =>
+      pages[i] ? pages[i].getRotation().angle : 0,
+    )
+    this.commit({
+      pages: descriptors,
+      overlays: {},
+      metadata: readMetadata(doc),
+      pageNumbers: null,
+      watermark: null,
+      formValues: {},
+      flatten: false,
+      protect: this.state.protect,
+    })
+  }
 
   // ---- overlay operations ----
   overlaysFor(pageId: string): OverlayObject[] {
@@ -227,8 +269,17 @@ export class EditorDocument {
       },
     }
   }
+  /** A finalize hook that draws watermark + page numbers after assembly. */
+  private finalizeHook(): Pick<BuildContext, 'finalize'> {
+    return {
+      finalize: async (out, state) => {
+        if (state.watermark) await applyWatermark(out, state.watermark)
+        if (state.pageNumbers) await applyPageNumbers(out, state.pageNumbers)
+      },
+    }
+  }
   buildContext(extra?: Partial<BuildContext>): BuildContext {
-    return { sources: this.sources, ...this.bakeHook(), ...extra }
+    return { sources: this.sources, ...this.bakeHook(), ...this.finalizeHook(), ...extra }
   }
   build(extra?: Partial<BuildContext>): Promise<Uint8Array> {
     return buildPdf(this.state, this.buildContext(extra))
