@@ -3,21 +3,33 @@ import preact from '@preact/preset-vite'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 
 // pedift ships as ONE self-contained pedift.html that works offline from file://.
-// - base './' so any (inlined) asset refs are relative, not root-absolute.
-// - viteSingleFile inlines all JS/CSS into the single HTML.
-// - assetsInlineLimit huge so fonts/icons/images get inlined too.
+//
+// The hard problem is pdf.js's Web Worker. We import it with `?worker&inline`
+// (see src/render/pdfjs.ts), which base64-embeds the worker into the main bundle
+// and constructs it via a blob: URL with a data: URL fallback — the fallback is
+// what makes it work from file:// (blob:null is blocked there).
+//
+// Requirements that make the single-file/offline build correct:
+// - base: './'                    → relative asset URLs, never /absolute (file:// breaks on absolute)
+// - inlineDynamicImports: true    → no async chunks fetched at runtime (fetch fails on file://)
+// - cssCodeSplit: false           → one CSS chunk, inlinable
+// - assetsInlineLimit: () => true → inline every asset (fonts/icons/images) regardless of size
+// - worker.format: 'es'           → ?worker&inline encodes ES-module workers correctly
 export default defineConfig({
   base: './',
-  plugins: [preact(), viteSingleFile()],
+  plugins: [preact(), viteSingleFile({ removeViteModuleLoader: true })],
+  worker: {
+    format: 'es',
+  },
   build: {
     target: 'es2022',
-    assetsInlineLimit: 100 * 1024 * 1024,
+    assetsInlineLimit: () => true,
     cssCodeSplit: false,
     reportCompressedSize: false,
+    chunkSizeWarningLimit: 8000,
     rollupOptions: {
       output: {
-        // single bundle; named file so the artifact is predictable
-        entryFileNames: 'pedift.js',
+        inlineDynamicImports: true,
       },
     },
   },

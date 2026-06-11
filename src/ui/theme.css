@@ -1,0 +1,167 @@
+/*
+ * pedift design system — "Warm & Friendly"
+ * All colors are CSS custom properties so both themes ship in the single file
+ * and the dark-mode toggle is a single attribute flip on <html>.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Warm & Friendly (light) palette */
+  --bg: #fbf3e4;
+  --bg-pattern: #f6ead3;
+  --surface: #fffdf8;
+  --surface-2: #f7eedd;
+  --surface-3: #f0e3cc;
+  --overlay-scrim: rgba(58, 44, 30, 0.45);
+
+  --text: #3a2e21;
+  --text-muted: #7a6a55;
+  --text-faint: #a4937b;
+  --text-on-accent: #43290a;
+
+  --accent: #e89a3c;
+  --accent-strong: #d9842a;
+  --accent-soft: #fbe6c6;
+  --accent-ring: rgba(232, 154, 60, 0.4);
+
+  --border: #e6d6ba;
+  --border-strong: #d8c19c;
+
+  --danger: #c8503f;
+  --danger-soft: #f6ddd6;
+  --success: #4f9d69;
+  --success-soft: #dcefe1;
+  --info: #4a82b5;
+
+  --selection: rgba(232, 154, 60, 0.28);
+  --highlight-default: rgba(255, 226, 84, 0.45);
+
+  --shadow-sm: 0 1px 2px rgba(58, 44, 30, 0.08);
+  --shadow-md: 0 4px 14px rgba(58, 44, 30, 0.12);
+  --shadow-lg: 0 12px 40px rgba(58, 44, 30, 0.2);
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+
+  --font-ui:
+    'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', 'Nunito', 'Quicksand', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+
+  --topbar-h: 56px;
+  --sidebar-w: 232px;
+
+  --transition: 140ms ease;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Dark slate variant */
+  --bg: #161b26;
+  --bg-pattern: #1b212e;
+  --surface: #212a3a;
+  --surface-2: #283245;
+  --surface-3: #313d52;
+  --overlay-scrim: rgba(5, 8, 14, 0.6);
+
+  --text: #ece7dd;
+  --text-muted: #a7b0c0;
+  --text-faint: #768194;
+  --text-on-accent: #2a1804;
+
+  --accent: #f0a849;
+  --accent-strong: #e8943a;
+  --accent-soft: #3a3322;
+  --accent-ring: rgba(240, 168, 73, 0.4);
+
+  --border: #344056;
+  --border-strong: #44516b;
+
+  --danger: #e36a58;
+  --danger-soft: #3a2420;
+  --success: #5fb37c;
+  --success-soft: #213328;
+  --info: #69a3d6;
+
+  --selection: rgba(240, 168, 73, 0.3);
+  --highlight-default: rgba(255, 224, 90, 0.4);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 14px 44px rgba(0, 0, 0, 0.55);
+}
+
+/* ---- base reset ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--bg-pattern) 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#app {
+  height: 100%;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--text);
+}
+
+a {
+  color: var(--accent-strong);
+}
+
+::selection {
+  background: var(--selection);
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
