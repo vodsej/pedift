@@ -127,6 +127,27 @@
   opacity: 0.96;
   transform: translateX(-50%) translateY(0);
 }
+/* Right-edge control clusters (landing header / workspace topbar): anchor the
+   tooltip to the control's right edge so it opens leftward and stays on-screen
+   instead of overflowing past the viewport (which #app clips away). */
+.landing__top-right [data-tooltip]::after,
+.topbar__right [data-tooltip]::after {
+  left: auto;
+  right: 0;
+  transform: translateX(0) translateY(-4px);
+}
+.landing__top-right [data-tooltip]:hover::after,
+.landing__top-right [data-tooltip]:focus-visible::after,
+.topbar__right [data-tooltip]:hover::after,
+.topbar__right [data-tooltip]:focus-visible::after {
+  transform: translateX(0) translateY(0);
+}
+/* The privacy line is a full sentence, not a short label: let it wrap to a tidy
+   block within max-width (nowrap makes the 240px cap above a no-op for it). */
+.privacy-badge[data-tooltip]::after {
+  white-space: normal;
+  width: max-content;
+}
 
 /* ---------- Inputs ---------- */
 .input {
