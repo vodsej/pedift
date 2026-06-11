@@ -84,6 +84,33 @@
   color: var(--text-faint);
   font-size: 13px;
 }
+.landing__sep {
+  color: var(--border);
+  margin: 0 8px;
+}
+.landing__sep::before {
+  content: '·';
+}
+.landing__save-btn {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-faint);
+  font-size: inherit;
+  display: inline-block;
+  transition: color 0.15s;
+}
+.landing__save-btn svg {
+  vertical-align: -0.125em;
+  margin-right: 5px;
+}
+.landing__save-btn:hover,
+.landing__save-btn:focus-visible {
+  color: var(--accent-strong);
+  box-shadow: 0 0 0 2px var(--accent-ring);
+  border-radius: 2px;
+}
 
 /* ---------- Quick tools ---------- */
 .quicktools {

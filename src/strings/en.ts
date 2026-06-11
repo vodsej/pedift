@@ -26,6 +26,7 @@ export const en = {
     quickToolsTitle: 'Quick tools',
     quickToolsHint: 'One-shot jobs — no need to open the editor',
     or: 'or',
+    saveThisPage: 'Save this page for offline use',
   },
 
   quickTools: {
