@@ -301,3 +301,178 @@ test('f. phase-2 rotate+save: pdf-lib runs in-browser, download is valid PDF', a
   const header = data.slice(0, 5).toString('ascii')
   expect(header).toBe('%PDF-')
 })
+
+// ─── h. Phase-4: Fill forms ───────────────────────────────────────────────────
+
+test('h. phase-4 forms: fill "name" field, save, text baked into PDF', async ({ page }) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'form.pdf'))
+  await waitForCanvas(page)
+
+  // Open Document → Fill forms
+  await openDocMenu(page)
+  await page.getByRole('menuitem', { name: /fill forms/i }).click()
+
+  // Wait for fields to load inside the dialog
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible({ timeout: 10_000 })
+  const nameInput = dialog.locator('input[aria-label="name"]')
+  await expect(nameInput).toBeVisible({ timeout: 10_000 })
+
+  await nameInput.fill('FORMOK999')
+
+  // Apply & continue — flattens and rebases the document
+  await dialog.getByRole('button', { name: /apply/i }).first().click()
+
+  // Wait for dialog to close and canvas to re-render after rebase
+  await expect(dialog).not.toBeVisible({ timeout: 10_000 })
+  await waitForCanvas(page)
+
+  // Save and verify
+  const dlPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: /save/i }).click()
+  const dl = await dlPromise
+  const savedPath = await dl.path()
+  expect(savedPath).not.toBeNull()
+
+  const bytes = fs.readFileSync(savedPath!)
+  expect(bytes.slice(0, 5).toString('ascii')).toBe('%PDF-')
+
+  const text = await extractPdfText(bytes)
+  expect(text).toContain('FORMOK999')
+})
+
+// ─── i. Phase-4: Protect ─────────────────────────────────────────────────────
+
+test('i. phase-4 protect: password-protect plain PDF, verify with pdf-lib', async ({ page }) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
+  await waitForCanvas(page)
+
+  // Open Document → Protect / Unprotect
+  await openDocMenu(page)
+  await page.getByRole('menuitem', { name: /protect/i }).click()
+
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible({ timeout: 10_000 })
+
+  // Check if feature is unsupported in this browser
+  const unsupported = dialog.locator('.doc-unsupported')
+  if (await unsupported.isVisible()) {
+    console.log('Protect unsupported in this environment — skipping assertions')
+    await dialog.getByRole('button', { name: /close/i }).click()
+    return
+  }
+
+  // Default mode is "Add a password"; fill both password fields
+  await dialog.locator('input[aria-label="New password"]').fill('wsme123')
+  await dialog.locator('input[aria-label="Confirm password"]').fill('wsme123')
+
+  // "Protect & download" closes dialog and stages the password on the editor
+  await dialog.getByRole('button', { name: 'Protect & download' }).click()
+  await expect(dialog).not.toBeVisible({ timeout: 5_000 })
+
+  // Save triggers editor.build() which applies the staged password
+  const dlPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: /save/i }).click()
+  const dl = await dlPromise
+  const savedPath = await dl.path()
+  expect(savedPath).not.toBeNull()
+
+  const bytes = fs.readFileSync(savedPath!)
+  expect(bytes.slice(0, 5).toString('ascii')).toBe('%PDF-')
+  expect(bytes.length).toBeGreaterThan(500)
+
+  // Verify with @cantoo/pdf-lib in Node:
+  // loading WITHOUT password must reject
+  let rejectedWithoutPassword = false
+  try {
+    await PDFDocument.load(bytes)
+  } catch {
+    rejectedWithoutPassword = true
+  }
+  expect(rejectedWithoutPassword).toBe(true)
+
+  // loading WITH correct password must succeed and report 3 pages
+  const protectedDoc = await PDFDocument.load(bytes, { password: 'wsme123' })
+  expect(protectedDoc.getPageCount()).toBe(3)
+})
+
+// ─── j. Phase-4: Watermark ───────────────────────────────────────────────────
+
+test('j. phase-4 watermark: add watermark text, save, text baked into PDF', async ({ page }) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
+  await waitForCanvas(page)
+
+  // Open Document → Watermark
+  await openDocMenu(page)
+  await page.getByRole('menuitem', { name: /watermark/i }).click()
+
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible({ timeout: 10_000 })
+
+  // Fill watermark text and confirm
+  const textInput = dialog.locator('input[aria-label="Watermark text"]')
+  await expect(textInput).toBeVisible({ timeout: 5_000 })
+  await textInput.fill('WMARKZZ')
+
+  await dialog.getByRole('button', { name: /add watermark/i }).click()
+  await expect(dialog).not.toBeVisible({ timeout: 5_000 })
+
+  // Save and verify
+  const dlPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: /save/i }).click()
+  const dl = await dlPromise
+  const savedPath = await dl.path()
+  expect(savedPath).not.toBeNull()
+
+  const bytes = fs.readFileSync(savedPath!)
+  expect(bytes.slice(0, 5).toString('ascii')).toBe('%PDF-')
+
+  const text = await extractPdfText(bytes)
+  expect(text).toContain('WMARKZZ')
+})
+
+// ─── k. Phase-4: Compress quick-tool (from landing screen) ───────────────────
+
+test('k. phase-4 compress quick-tool: downloads a valid PDF', async ({ page }) => {
+  // Start on landing (no document open)
+  await page.goto(APP)
+  await expect(page.locator('.dropzone').first()).toBeVisible()
+
+  // Click the Compress tool-tile on the landing screen
+  await page.locator('button.tool-tile').filter({ hasText: 'Compress' }).click()
+
+  // The CompressWizard dialog should open
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible({ timeout: 10_000 })
+
+  // Choose plain-3page.pdf via the dropzone inside the dialog
+  const [chooser] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    dialog.locator('.dropzone').click(),
+  ])
+  await chooser.setFiles(path.join(FIXTURES, 'plain-3page.pdf'))
+
+  // Wait for the file row to appear (file accepted)
+  await expect(dialog.locator('.compress-file')).toBeVisible({ timeout: 5_000 })
+
+  // Click "Compress & download"
+  await dialog.getByRole('button', { name: 'Compress & download' }).click()
+
+  // Wait for result (spinner clears, Download button appears)
+  const downloadBtn = dialog.getByRole('button', { name: /download/i })
+  await expect(downloadBtn).toBeVisible({ timeout: 30_000 })
+
+  // Capture the programmatic download triggered by the Download button
+  const dlPromise = page.waitForEvent('download')
+  await downloadBtn.click()
+  const dl = await dlPromise
+  const savedPath = await dl.path()
+  expect(savedPath).not.toBeNull()
+
+  const bytes = fs.readFileSync(savedPath!)
+  expect(bytes.slice(0, 5).toString('ascii')).toBe('%PDF-')
+  expect(bytes.length).toBeGreaterThan(500)
+})
