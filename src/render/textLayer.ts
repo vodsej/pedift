@@ -55,6 +55,28 @@ export async function buildTextLayer(
   return { layer, boxes }
 }
 
+/** Get text-item boxes (CSS px) for a page without rendering a DOM text layer. */
+export async function getTextItemBoxes(
+  page: PDFPageProxy,
+  viewport: PageViewport,
+  dpr: number,
+): Promise<TextItemBox[]> {
+  const textContent = await page.getTextContent()
+  const boxes: TextItemBox[] = []
+  let index = 0
+  for (const raw of textContent.items) {
+    const item = raw as TextItem
+    if (typeof item.str !== 'string' || item.str.trim() === '') {
+      index++
+      continue
+    }
+    const box = textItemToCssBox(item, viewport, dpr)
+    if (box.width > 0 && box.height > 0) boxes.push({ ...box, str: item.str, index })
+    index++
+  }
+  return boxes
+}
+
 /** Map a text item to a CSS-pixel rect (top-left origin) over the page. */
 export function textItemToCssBox(
   item: TextItem,

@@ -9,6 +9,7 @@ import { PageStage } from './PageStage'
 import { AnnotateToolbar } from './AnnotateToolbar'
 import { OverlayLayer } from '../overlay/OverlayLayer'
 import { CropOverlay } from '../overlay/CropOverlay'
+import { TextSelectLayer } from '../overlay/TextSelectLayer'
 import { DocumentMenu, type DocAction } from './DocumentMenu'
 import { SplitDialog } from './dialogs/SplitDialog'
 import { InsertDialog } from './dialogs/InsertDialog'
@@ -306,6 +307,17 @@ export function Workspace({
                       editor={editor}
                       pageId={currentDescriptor.id}
                       onDone={() => setCropMode(false)}
+                    />
+                  ) : tool === 'replaceText' ? (
+                    <TextSelectLayer
+                      editor={editor}
+                      registry={registry}
+                      descriptor={currentDescriptor}
+                      geometry={geometry}
+                      onReplaced={(id) => {
+                        setTool('select')
+                        setOverlaySel(id)
+                      }}
                     />
                   ) : (
                     <OverlayLayer

@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import path from 'node:path'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { PDFDocument } from '@cantoo/pdf-lib'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FIXTURES = path.resolve(__dirname, '../fixtures')
@@ -9,6 +10,8 @@ const FIXTURES = path.resolve(__dirname, '../fixtures')
 // The build renames dist/index.html -> dist/pedift.html, so serve's SPA fallback
 // won't kick in.  Navigate to the explicit path.
 const APP = '/pedift.html'
+
+const WORKER_SRC = `file://${path.resolve(__dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs')}`
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -24,6 +27,31 @@ async function waitForCanvas(page: import('@playwright/test').Page) {
   const canvas = page.locator('.pagecanvas__canvas').first()
   await expect(canvas).toBeVisible({ timeout: 30_000 })
   return canvas
+}
+
+/** Open Document menu in the workspace (avoids matching "Close document"). */
+async function openDocMenu(page: import('@playwright/test').Page) {
+  await page.getByRole('button', { name: 'Document', exact: true }).click()
+}
+
+/** Extract all text from a PDF byte buffer using pdfjs-dist legacy in Node. */
+async function extractPdfText(bytes: Buffer): Promise<string> {
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
+  pdfjs.GlobalWorkerOptions.workerSrc = WORKER_SRC
+  const task = pdfjs.getDocument({
+    data: new Uint8Array(bytes),
+    useWorkerFetch: false,
+    isEvalSupported: false,
+    useSystemFonts: false,
+  })
+  const doc = await task.promise
+  let text = ''
+  for (let i = 1; i <= doc.numPages; i++) {
+    const pg = await doc.getPage(i)
+    const content = await pg.getTextContent()
+    text += content.items.map((it: { str: string }) => it.str).join(' ')
+  }
+  return text
 }
 
 // ─── a. Loads app ─────────────────────────────────────────────────────────────

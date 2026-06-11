@@ -14,7 +14,10 @@ import { EditorDocument } from '../core/document'
 import { RenderRegistry } from '../render/registry'
 import { probeEncryptionSupport } from '../core/crypto'
 import { openFileAsSession } from './openFlow'
+import { isPdfFile } from '../io/fileio'
 import { t } from '../strings/en'
+
+const LARGE_FILE_BYTES = 100 * 1024 * 1024
 
 interface PasswordPrompt {
   wrong: boolean
@@ -48,6 +51,9 @@ export function App() {
 
   const openFile = useCallback(
     async (file: File) => {
+      if (file.size > LARGE_FILE_BYTES) {
+        toast.info(t.toasts.largeFileWarning(Math.round(file.size / 1024 / 1024)))
+      }
       setOpening(true)
       try {
         const opened = await openFileAsSession(file, { requestPassword })
@@ -77,6 +83,23 @@ export function App() {
       return null
     })
   }, [])
+
+  // Accept a PDF dropped anywhere on the landing screen.
+  useEffect(() => {
+    if (session) return
+    const onOver = (e: DragEvent) => e.preventDefault()
+    const onDrop = (e: DragEvent) => {
+      e.preventDefault()
+      const f = e.dataTransfer?.files?.[0]
+      if (f && isPdfFile(f)) void openFile(f)
+    }
+    window.addEventListener('dragover', onOver)
+    window.addEventListener('drop', onDrop)
+    return () => {
+      window.removeEventListener('dragover', onOver)
+      window.removeEventListener('drop', onDrop)
+    }
+  }, [session, openFile])
 
   return (
     <>

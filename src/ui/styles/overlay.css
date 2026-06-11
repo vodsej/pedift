@@ -70,6 +70,22 @@ html[data-theme='dark'] .overlay-text-edit {
   touch-action: none;
 }
 
+/* Replace-text run picker */
+.textselect {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.textselect__run {
+  position: absolute;
+  cursor: text;
+  border-radius: 2px;
+}
+.textselect__run:hover {
+  background: var(--accent-ring);
+  outline: 1px solid var(--accent);
+}
+
 /* Crop overlay */
 .cropoverlay {
   position: absolute;

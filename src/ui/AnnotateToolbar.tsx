@@ -6,6 +6,7 @@ import { ColorInput, Slider, Select, Field } from './components/controls'
 import {
   IconCursor,
   IconText,
+  IconReplace,
   IconHighlight,
   IconPen,
   IconShapes,
@@ -278,6 +279,14 @@ export function AnnotateToolbar(props: AnnotateToolbarProps): JSX.Element {
         onClick={() => setTool('text')}
       >
         <IconText />
+      </IconButton>
+
+      <IconButton
+        label={t.tools.replaceText}
+        active={tool === 'replaceText'}
+        onClick={() => setTool('replaceText')}
+      >
+        <IconReplace />
       </IconButton>
 
       <IconButton

@@ -3,6 +3,7 @@ import type { StandardFontName } from '../core/types'
 export type ToolId =
   | 'select'
   | 'text'
+  | 'replaceText'
   | 'whiteout'
   | 'rect'
   | 'ellipse'
