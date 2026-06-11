@@ -1,15 +1,18 @@
-import { useCallback, useState } from 'preact/hooks'
+import { useCallback, useEffect, useState } from 'preact/hooks'
 import { Landing, type QuickToolId } from './Landing'
 import { Workspace } from './Workspace'
 import { ToastHost } from './components/ToastHost'
 import { PasswordDialog } from './PasswordDialog'
 import { MergeWizard } from './quicktools/MergeWizard'
 import { ImagesToPdfWizard } from './quicktools/ImagesToPdfWizard'
+import { CompressWizard } from './quicktools/CompressWizard'
+import { ProtectWizard } from './quicktools/ProtectWizard'
 import { useTheme } from './theme'
 import { toast } from './toast'
 import { friendlyMessage, PdfError } from '../core/errors'
 import { EditorDocument } from '../core/document'
 import { RenderRegistry } from '../render/registry'
+import { probeEncryptionSupport } from '../core/crypto'
 import { openFileAsSession } from './openFlow'
 import { t } from '../strings/en'
 
@@ -30,6 +33,12 @@ export function App() {
   const [opening, setOpening] = useState(false)
   const [prompt, setPrompt] = useState<PasswordPrompt | null>(null)
   const [quickTool, setQuickTool] = useState<QuickToolId | null>(null)
+  const [protectSupported, setProtectSupported] = useState(true)
+
+  // Phase-1 encryption spike, in-browser: gate protect/unprotect on a real probe.
+  useEffect(() => {
+    probeEncryptionSupport().then(setProtectSupported).catch(() => setProtectSupported(false))
+  }, [])
 
   const requestPassword = useCallback(
     (wrong: boolean) =>
@@ -79,6 +88,7 @@ export function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
           onClose={closeSession}
+          protectSupported={protectSupported}
         />
       ) : (
         <Landing
@@ -106,6 +116,10 @@ export function App() {
 
       {quickTool === 'merge' && <MergeWizard onClose={() => setQuickTool(null)} />}
       {quickTool === 'images' && <ImagesToPdfWizard onClose={() => setQuickTool(null)} />}
+      {quickTool === 'compress' && <CompressWizard onClose={() => setQuickTool(null)} />}
+      {quickTool === 'protect' && (
+        <ProtectWizard supported={protectSupported} onClose={() => setQuickTool(null)} />
+      )}
 
       <ToastHost />
     </>

@@ -1,0 +1,131 @@
+/*
+ * Compress wizard / dialog styles.
+ * Imported by both CompressWizard and CompressDialog.
+ * Depends on the global design tokens from theme.css.
+ */
+
+/* ---- Quality slider row ---- */
+.compress-quality {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.compress-quality__label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.compress-quality__slider {
+  flex: 1;
+}
+
+/* ---- Busy state ---- */
+.compress-busy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-5) 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ---- Result summary ---- */
+.compress-result {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-3);
+}
+
+.compress-result__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.compress-result__label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.compress-result__value {
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* ---- Saving badge (positive result) ---- */
+.compress-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.compress-badge--saved {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.compress-badge--larger {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+/* ---- Drop zone used as file picker (wizard only) ---- */
+.compress-drop {
+  margin-bottom: var(--space-3);
+}
+
+/* ---- Selected file info row (wizard only) ---- */
+.compress-file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-3);
+}
+
+.compress-file__icon {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+}
+
+.compress-file__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compress-file__size {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}

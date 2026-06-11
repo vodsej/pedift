@@ -1,0 +1,148 @@
+/*
+ * Styles shared by MetadataDialog, WatermarkDialog, PageNumbersDialog,
+ * FillFormsDialog, FlattenDialog, ProtectDialog, and ProtectWizard.
+ * Uses design tokens from theme.css; supports dark mode automatically.
+ */
+
+/* ---- Two-column grid for side-by-side fields (e.g. range from/to) ---- */
+.doc-field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+/* ---- Flex row utility ---- */
+.doc-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---- Form field list (FillFormsDialog) ---- */
+.form-field-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+/* ---- Single form field row ---- */
+.form-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.form-field-row__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Checkbox field rows are horizontal */
+.form-field-row--checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.form-field-row--checkbox .form-field-row__label {
+  flex: 1;
+}
+
+/* ---- Password fields column (ProtectDialog / ProtectWizard) ---- */
+.protect-pw {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ---- Unsupported / empty state message ---- */
+.doc-unsupported {
+  padding: var(--space-4) var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* ---- Inline validation error ---- */
+.doc-field-error {
+  font-size: 0.8125rem;
+  color: var(--danger);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ---- Opacity display row (value label beside slider) ---- */
+.doc-slider-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.doc-slider-row .slider {
+  flex: 1;
+}
+
+.doc-slider-val {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  min-width: 2.5ch;
+  text-align: right;
+}
+
+/* ---- Color + slider combo row ---- */
+.doc-color-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* ---- Wizard file row (ProtectWizard) ---- */
+.doc-file-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-3);
+  min-width: 0;
+}
+
+.doc-file-row__icon {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+}
+
+.doc-file-row__name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+}
+
+.doc-file-row__size {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}

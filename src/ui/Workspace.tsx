@@ -8,10 +8,19 @@ import { PagesPanel } from './PagesPanel'
 import { PageStage } from './PageStage'
 import { AnnotateToolbar } from './AnnotateToolbar'
 import { OverlayLayer } from '../overlay/OverlayLayer'
+import { CropOverlay } from '../overlay/CropOverlay'
+import { DocumentMenu, type DocAction } from './DocumentMenu'
 import { SplitDialog } from './dialogs/SplitDialog'
 import { InsertDialog } from './dialogs/InsertDialog'
 import { ExportImageDialog } from './dialogs/ExportImageDialog'
 import { SignatureDialog } from './dialogs/SignatureDialog'
+import { MetadataDialog } from './dialogs/MetadataDialog'
+import { WatermarkDialog } from './dialogs/WatermarkDialog'
+import { PageNumbersDialog } from './dialogs/PageNumbersDialog'
+import { FillFormsDialog } from './dialogs/FillFormsDialog'
+import { FlattenDialog } from './dialogs/FlattenDialog'
+import { ProtectDialog } from './dialogs/ProtectDialog'
+import { CompressDialog } from './dialogs/CompressDialog'
 import { useEditorState } from './hooks/useEditor'
 import { useElementWidth } from './hooks/useElementWidth'
 import { defaultToolOptions, type ToolId, type ToolOptions, type InsertRequest } from '../overlay/tools'
@@ -47,6 +56,7 @@ interface Props {
   theme: Theme
   onToggleTheme: () => void
   onClose: () => void
+  protectSupported: boolean
 }
 
 const ZOOM_MIN = 0.25
@@ -55,7 +65,15 @@ const PAGE_PADDING = 56
 
 type ActiveDialog = 'split' | 'insert' | 'export' | 'confirmDelete' | 'confirmClose' | null
 
-export function Workspace({ editor, registry, fileName, theme, onToggleTheme, onClose }: Props) {
+export function Workspace({
+  editor,
+  registry,
+  fileName,
+  theme,
+  onToggleTheme,
+  onClose,
+  protectSupported,
+}: Props) {
   useEditorState(editor)
   const pages = editor.pages
 
@@ -72,6 +90,17 @@ export function Workspace({ editor, registry, fileName, theme, onToggleTheme, on
   const [overlaySel, setOverlaySel] = useState<string | null>(null)
   const [insertRequest, setInsertRequest] = useState<InsertRequest | null>(null)
   const [showSignature, setShowSignature] = useState(false)
+  const [cropMode, setCropMode] = useState(false)
+  const [docDialog, setDocDialog] = useState<DocAction | null>(null)
+
+  const onDocAction = (a: DocAction) => {
+    if (a === 'crop') {
+      setTool('select')
+      setCropMode(true)
+    } else {
+      setDocDialog(a)
+    }
+  }
 
   // Keep `current` valid as pages change (delete/reorder).
   useEffect(() => {
@@ -228,6 +257,7 @@ export function Workspace({ editor, registry, fileName, theme, onToggleTheme, on
           <span class="privacy-badge privacy-badge--mini" data-tooltip={t.privacy.line}>
             <IconShield size={14} /> {t.privacy.badge}
           </span>
+          <DocumentMenu onSelect={onDocAction} />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
           <Button variant="primary" onClick={save} disabled={saving}>
             <IconSave size={18} /> {saving ? t.workspace.saving : t.workspace.save}
@@ -269,20 +299,29 @@ export function Workspace({ editor, registry, fileName, theme, onToggleTheme, on
                 registry={registry}
                 descriptor={currentDescriptor}
                 cssWidth={cssWidth}
-                renderOverlay={(geometry) => (
-                  <OverlayLayer
-                    editor={editor}
-                    pageId={currentDescriptor.id}
-                    geometry={geometry}
-                    tool={tool}
-                    options={toolOptions}
-                    selectedId={overlaySel}
-                    setSelectedId={setOverlaySel}
-                    onPlaced={() => setTool('select')}
-                    insertRequest={insertRequest}
-                    onInsertConsumed={() => setInsertRequest(null)}
-                  />
-                )}
+                renderOverlay={(geometry) =>
+                  cropMode ? (
+                    <CropOverlay
+                      geometry={geometry}
+                      editor={editor}
+                      pageId={currentDescriptor.id}
+                      onDone={() => setCropMode(false)}
+                    />
+                  ) : (
+                    <OverlayLayer
+                      editor={editor}
+                      pageId={currentDescriptor.id}
+                      geometry={geometry}
+                      tool={tool}
+                      options={toolOptions}
+                      selectedId={overlaySel}
+                      setSelectedId={setOverlaySel}
+                      onPlaced={() => setTool('select')}
+                      insertRequest={insertRequest}
+                      onInsertConsumed={() => setInsertRequest(null)}
+                    />
+                  )
+                }
               />
             )}
           </div>
@@ -328,6 +367,22 @@ export function Workspace({ editor, registry, fileName, theme, onToggleTheme, on
       {showSignature && (
         <SignatureDialog onClose={() => setShowSignature(false)} onConfirm={placeSignature} />
       )}
+
+      {docDialog === 'metadata' && <MetadataDialog editor={editor} onClose={() => setDocDialog(null)} />}
+      {docDialog === 'watermark' && <WatermarkDialog editor={editor} onClose={() => setDocDialog(null)} />}
+      {docDialog === 'pagenumbers' && (
+        <PageNumbersDialog editor={editor} onClose={() => setDocDialog(null)} />
+      )}
+      {docDialog === 'forms' && (
+        <FillFormsDialog editor={editor} registry={registry} onClose={() => setDocDialog(null)} />
+      )}
+      {docDialog === 'flatten' && (
+        <FlattenDialog editor={editor} registry={registry} onClose={() => setDocDialog(null)} />
+      )}
+      {docDialog === 'protect' && (
+        <ProtectDialog editor={editor} supported={protectSupported} onClose={() => setDocDialog(null)} />
+      )}
+      {docDialog === 'compress' && <CompressDialog editor={editor} onClose={() => setDocDialog(null)} />}
     </div>
   )
 }
