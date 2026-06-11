@@ -10,6 +10,8 @@ import { openPdfDocument, destroyPdf, type OpenedPdf } from './pdfjs'
 export class RenderRegistry {
   private docs = new Map<string, PDFDocumentProxy>()
   private pending = new Map<string, Promise<PDFDocumentProxy>>()
+  /** Bumped on evict so hooks can re-resolve a source after its bytes change. */
+  version = 0
 
   constructor(private getSource: (id: string) => SourceRef | undefined) {}
 
@@ -41,6 +43,7 @@ export class RenderRegistry {
     const doc = this.docs.get(sourceId)
     this.docs.delete(sourceId)
     this.pending.delete(sourceId)
+    this.version++
     if (doc) await destroyPdf(doc)
   }
 

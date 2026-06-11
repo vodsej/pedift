@@ -31,16 +31,20 @@ export function DescriptorThumb({
   useEffect(() => {
     if (!visible) return
     let cancelled = false
+    let cancelRender: (() => void) | null = null
     registry
       .get(descriptor.sourceId)
       .then((doc) => doc.getPage(descriptor.srcIndex + 1))
       .then((page) => {
         if (cancelled || !ref.current) return
-        return renderThumbnail(page, ref.current, THUMB_WIDTH, descriptor.rotation)
+        const handle = renderThumbnail(page, ref.current, THUMB_WIDTH, descriptor.rotation)
+        cancelRender = handle.cancel
+        return handle.promise
       })
       .catch(() => {})
     return () => {
       cancelled = true
+      cancelRender?.()
     }
   }, [visible, registry, descriptor.sourceId, descriptor.srcIndex, descriptor.rotation])
 

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'preact/hooks'
 import type { ComponentChildren } from 'preact'
 import { pickFiles, ACCEPT_PDF, ACCEPT_IMAGE, isPdfFile, isImageFile } from '../../io/fileio'
+import { t } from '../../strings/en'
 
 type Accept = 'pdf' | 'image' | 'any'
 
@@ -13,6 +14,8 @@ interface DropZoneProps {
   children?: ComponentChildren
   /** Shown while dragging over the zone. */
   activeLabel?: string
+  /** Accessible label for the drop zone root (role="button"). */
+  label?: string
 }
 
 function acceptAttr(accept: Accept): string | undefined {
@@ -35,6 +38,7 @@ export function DropZone({
   compact = false,
   children,
   activeLabel,
+  label = t.landing.dropTitle,
 }: DropZoneProps) {
   const [over, setOver] = useState(false)
   const depth = useRef(0)
@@ -58,6 +62,7 @@ export function DropZone({
       class={`dropzone ${compact ? 'dropzone--compact' : ''} ${over ? 'is-over' : ''} ${cls}`}
       role="button"
       tabIndex={0}
+      aria-label={label}
       onClick={openPicker}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), openPicker())}
       onDragEnter={(e) => {

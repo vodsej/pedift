@@ -130,6 +130,13 @@ export const IconFit = (p: P) => (
     <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
   </Svg>
 )
+export const IconFitPage = (p: P) => (
+  <Svg {...p}>
+    <rect x="6" y="3" width="12" height="18" rx="1.5" />
+    <polyline points="9 7 12 4 15 7" />
+    <polyline points="9 17 12 20 15 17" />
+  </Svg>
+)
 export const IconRotateRight = (p: P) => (
   <Svg {...p}>
     <polyline points="21 7 21 3 17 3" />

@@ -23,7 +23,8 @@ export function useSourceDoc(
     return () => {
       cancelled = true
     }
-  }, [registry, sourceId])
+    // registry.version changes on evict (after rebase) so we re-resolve fresh bytes.
+  }, [registry, sourceId, registry.version])
 
   return doc
 }

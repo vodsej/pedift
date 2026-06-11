@@ -8,6 +8,7 @@ import {
   descriptorsForSource,
   insertPagesAt,
   movePages,
+  normalizeRotation,
   rotatePages,
   setCrop,
 } from './pages'
@@ -197,7 +198,7 @@ export class EditorDocument {
       id: nextId('pg'),
       sourceId,
       srcIndex,
-      rotation: 0,
+      rotation: normalizeRotation(ref.pageRotations?.[srcIndex] ?? 0),
       crop: null,
     }))
     this.update((s) => ({ ...s, pages: insertPagesAt(s.pages, atIndex, inserted) }))
@@ -259,12 +260,18 @@ export class EditorDocument {
   private bakeHook(): Pick<BuildContext, 'bakePage'> {
     const overlays = this.state.overlays
     const images = this.images
+    // Assets (embedded fonts/images) are bound to a specific output document.
+    // Split builds reuse this hook across several docs, so re-create when `out` changes.
     let assets: BakeAssets | null = null
+    let lastOut: PDFDocument | null = null
     return {
       bakePage: async (out, page, pageId) => {
         const objs = overlays[pageId]
         if (!objs || objs.length === 0) return
-        if (!assets) assets = createBakeAssets(out, images)
+        if (!assets || out !== lastOut) {
+          assets = createBakeAssets(out, images)
+          lastOut = out
+        }
         await bakeObjects(page, objs, assets)
       },
     }

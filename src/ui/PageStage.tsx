@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks'
 import type { ComponentChildren } from 'preact'
 import type { PageDescriptor } from '../core/types'
 import type { RenderRegistry } from '../render/registry'
-import type { PageGeometry } from '../overlay/geometry'
+import { type PageGeometry, rotatedSizePts } from '../overlay/geometry'
 import { useSourceDoc } from './hooks/useSourceDoc'
 import { PdfPageCanvas } from './PdfPageCanvas'
 import { Spinner } from './components/Spinner'
@@ -13,10 +13,12 @@ interface Props {
   cssWidth: number
   /** Render the overlay layer once the page geometry is known. */
   renderOverlay?: (geometry: PageGeometry) => ComponentChildren
+  /** Reports the page's display aspect (height/width), for fit-page zoom. */
+  onAspect?: (aspect: number) => void
 }
 
 /** Main editing surface: renders a page descriptor and hosts the overlay layer. */
-export function PageStage({ registry, descriptor, cssWidth, renderOverlay }: Props) {
+export function PageStage({ registry, descriptor, cssWidth, renderOverlay, onAspect }: Props) {
   const doc = useSourceDoc(registry, descriptor.sourceId)
   const [size, setSize] = useState<{ w: number; h: number } | null>(null)
 
@@ -52,6 +54,13 @@ export function PageStage({ registry, descriptor, cssWidth, renderOverlay }: Pro
         displayWidthCss: cssWidth,
       }
     : null
+
+  useEffect(() => {
+    if (!geometry || !onAspect) return
+    const r = rotatedSizePts(geometry)
+    onAspect(r.h / r.w)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [size?.w, size?.h, descriptor.rotation])
 
   return (
     <div class="stage__page" style={{ position: 'relative', width: cssWidth }}>

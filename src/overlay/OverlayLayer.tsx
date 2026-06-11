@@ -52,7 +52,7 @@ type Corner = 'nw' | 'ne' | 'sw' | 'se'
 type Gesture =
   | { mode: 'create'; start: { x: number; y: number } }
   | { mode: 'pen'; pts: Array<[number, number]> }
-  | { mode: 'move'; orig: OverlayObject; start: { x: number; y: number } }
+  | { mode: 'move'; orig: OverlayObject; start: { x: number; y: number }; captured: boolean }
   | { mode: 'resize'; orig: OverlayObject; corner: Corner; fixed: { x: number; y: number } }
 
 export function OverlayLayer({
@@ -196,6 +196,13 @@ export function OverlayLayer({
       return
     }
     if (gx.mode === 'move') {
+      // Capture only once a real drag starts, so a plain click/double-click on a
+      // text box still reaches its dblclick handler (capture would steal it).
+      if (!gx.captured && (Math.abs(p.x - gx.start.x) > 2 || Math.abs(p.y - gx.start.y) > 2)) {
+        layerRef.current?.setPointerCapture(e.pointerId)
+        gx.captured = true
+      }
+      if (!gx.captured) return
       const a = viewToPdf(g, gx.start.x, gx.start.y)
       const b = viewToPdf(g, p.x, p.y)
       setDraft(translateObj(gx.orig, b.x - a.x, b.y - a.y))
@@ -208,7 +215,13 @@ export function OverlayLayer({
   }
 
   const onPointerUp = (e: PointerEvent) => {
-    layerRef.current?.releasePointerCapture(e.pointerId)
+    try {
+      if (layerRef.current?.hasPointerCapture(e.pointerId)) {
+        layerRef.current.releasePointerCapture(e.pointerId)
+      }
+    } catch {
+      /* not captured */
+    }
     const gx = gestureRef.current
     gestureRef.current = null
     const d = draft
@@ -266,9 +279,8 @@ export function OverlayLayer({
   const startMove = (e: PointerEvent, obj: OverlayObject) => {
     if (tool !== 'select') return
     e.stopPropagation()
-    layerRef.current?.setPointerCapture(e.pointerId)
     setSelectedId(obj.id)
-    gestureRef.current = { mode: 'move', orig: obj, start: rel(e) }
+    gestureRef.current = { mode: 'move', orig: obj, start: rel(e), captured: false }
   }
 
   const startResize = (e: PointerEvent, obj: OverlayObject, corner: Corner) => {
@@ -326,6 +338,13 @@ function normRect(a: { x: number; y: number }, b: { x: number; y: number }): Vie
   return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.abs(b.x - a.x), height: Math.abs(b.y - a.y) }
 }
 
+// Approximate the standard PDF fonts on screen so wrapping/alignment roughly match the bake.
+const FONT_CSS: Record<string, string> = {
+  Helvetica: 'Helvetica, Arial, sans-serif',
+  TimesRoman: '"Times New Roman", Times, serif',
+  Courier: '"Courier New", Courier, monospace',
+}
+
 interface ObjectViewProps {
   obj: OverlayObject
   g: PageGeometry
@@ -359,12 +378,13 @@ function ObjectView(p: ObjectViewProps) {
   let body
   if (obj.type === 'text') {
     const fontPx = ptsToCss(g, obj.fontSize)
+    const fontFamily = FONT_CSS[obj.font]
     if (editing) {
       body = (
         <textarea
           class="overlay-text-edit"
           autofocus
-          style={{ ...base, fontSize: fontPx, color: obj.color, textAlign: obj.align, lineHeight: 1.18 }}
+          style={{ ...base, fontSize: fontPx, fontFamily, color: obj.color, textAlign: obj.align, lineHeight: 1.18 }}
           onPointerDown={(e) => e.stopPropagation()}
           onBlur={(e) => p.onEditCommit((e.target as HTMLTextAreaElement).value)}
           onKeyDown={(e) => {
@@ -379,7 +399,7 @@ function ObjectView(p: ObjectViewProps) {
         <div
           {...common}
           class={`overlay-obj overlay-text ${selected ? 'is-selected' : ''}`}
-          style={{ ...common.style, fontSize: fontPx, color: obj.color, textAlign: obj.align, lineHeight: 1.18 }}
+          style={{ ...common.style, fontSize: fontPx, fontFamily, color: obj.color, textAlign: obj.align, lineHeight: 1.18 }}
         >
           {obj.text || ' '}
         </div>

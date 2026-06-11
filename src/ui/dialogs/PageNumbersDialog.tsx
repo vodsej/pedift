@@ -111,24 +111,24 @@ export function PageNumbersDialog({
 
       {rangeMode === 'range' && (
         <div class="doc-field-grid">
-          <Field label="From page">
+          <Field label={t.common.fromPage}>
             <TextInput
               type="number"
               min={1}
               max={editor.pageCount}
               value={fromPage}
               onInput={(e) => setFromPage((e.target as HTMLInputElement).value)}
-              aria-label="From page"
+              aria-label={t.common.fromPage}
             />
           </Field>
-          <Field label="To page">
+          <Field label={t.common.toPage}>
             <TextInput
               type="number"
               min={1}
               max={editor.pageCount}
               value={toPage}
               onInput={(e) => setToPage((e.target as HTMLInputElement).value)}
-              aria-label="To page"
+              aria-label={t.common.toPage}
             />
           </Field>
         </div>

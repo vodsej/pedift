@@ -66,9 +66,11 @@ export function App() {
         })
         toast.success(t.toasts.opened(opened.fileName))
       } catch (err) {
+        // A cancelled password prompt surfaces as 'encrypted' — stay silent. A
+        // 'wrong-password' error here means attempts were exhausted — show it.
         const e = err instanceof PdfError ? err : null
-        const cancelled = e ? e.kind === 'encrypted' || e.kind === 'wrong-password' : false
-        if (!cancelled) toast.error(friendlyMessage(err))
+        const userCancelled = e?.kind === 'encrypted'
+        if (!userCancelled) toast.error(friendlyMessage(err))
       } finally {
         setOpening(false)
         setPrompt(null)

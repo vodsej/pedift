@@ -26,7 +26,12 @@ export function InsertDialog({
   insertAfter: string | null
 }) {
   const total = editor.pageCount
-  const [file, setFile] = useState<{ name: string; bytes: Uint8Array; count: number } | null>(null)
+  const [file, setFile] = useState<{
+    name: string
+    bytes: Uint8Array
+    count: number
+    rotations: number[]
+  } | null>(null)
   const [loading, setLoading] = useState(false)
   const [which, setWhich] = useState<Which>('all')
   const [someRanges, setSomeRanges] = useState('')
@@ -40,7 +45,8 @@ export function InsertDialog({
     try {
       const bytes = await fileToBytes(f)
       const doc = await PDFDocument.load(bytes, { updateMetadata: false })
-      setFile({ name: f.name, bytes, count: doc.getPageCount() })
+      const rotations = doc.getPages().map((p) => p.getRotation().angle)
+      setFile({ name: f.name, bytes, count: doc.getPageCount(), rotations })
     } catch (err) {
       toast.error(friendlyMessage(err))
     } finally {
@@ -63,7 +69,13 @@ export function InsertDialog({
     if (!indices.length) return
     setBusy(true)
     const sourceId = nextId('src')
-    editor.addSource({ id: sourceId, kind: 'pdf', bytes: file.bytes, name: file.name })
+    editor.addSource({
+      id: sourceId,
+      kind: 'pdf',
+      bytes: file.bytes,
+      name: file.name,
+      pageRotations: file.rotations,
+    })
     editor.insertSourcePages(sourceId, indices, parseInt(position, 10))
     toast.success(`${indices.length} ${t.common.pages.toLowerCase()}`)
     onClose()

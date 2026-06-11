@@ -310,6 +310,8 @@ export function AnnotateToolbar(props: AnnotateToolbarProps): JSX.Element {
           label={t.tools.shapes}
           active={shapesActive || shapesOpen}
           onClick={() => setShapesOpen((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={shapesOpen}
         >
           <IconShapes />
         </IconButton>
@@ -353,6 +355,8 @@ export function AnnotateToolbar(props: AnnotateToolbarProps): JSX.Element {
           label={t.tools.stamp}
           active={tool === 'stamp' || stampOpen}
           onClick={() => setStampOpen((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={stampOpen}
         >
           <IconStamp />
         </IconButton>

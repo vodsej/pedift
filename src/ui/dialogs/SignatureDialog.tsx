@@ -4,6 +4,7 @@ import { Dialog } from '../components/Dialog'
 import { Button } from '../components/Button'
 import { SegmentedControl, TextInput } from '../components/controls'
 import { t } from '../../strings/en'
+import { addSignature, getSignatures } from '../signatureStore'
 import '../styles/annotate.css'
 
 export interface SignatureDialogProps {
@@ -63,6 +64,7 @@ function renderTypeText(canvas: HTMLCanvasElement, text: string) {
 
 export function SignatureDialog(props: SignatureDialogProps): JSX.Element {
   const { onClose, onConfirm } = props
+  const savedSigs = getSignatures()
   const [mode, setMode] = useState<Mode>('draw')
   const [typeText, setTypeText] = useState('')
   const [isEmpty, setIsEmpty] = useState(true)
@@ -189,11 +191,14 @@ export function SignatureDialog(props: SignatureDialogProps): JSX.Element {
     tmpCtx.drawImage(canvas, bounds.x, bounds.y, bounds.w, bounds.h, 0, 0, bounds.w, bounds.h)
 
     const aspect = bounds.w / bounds.h
+    const dataUrl = tmp.toDataURL('image/png')
     setBusy(true)
     tmp.toBlob((blob) => {
       if (!blob) { setBusy(false); return }
       blob.arrayBuffer().then((buf) => {
-        onConfirm(new Uint8Array(buf), aspect)
+        const bytes = new Uint8Array(buf)
+        addSignature({ dataUrl, bytes, aspect })
+        onConfirm(bytes, aspect)
         setBusy(false)
         onClose()
       }).catch(() => setBusy(false))
@@ -235,6 +240,25 @@ export function SignatureDialog(props: SignatureDialogProps): JSX.Element {
       footer={footer}
       size="md"
     >
+      {savedSigs.length > 0 && (
+        <div class="sig-reuse">
+          <span class="sig-reuse__label">{t.dialogs.signature.reuse}</span>
+          <div class="sig-reuse__list">
+            {savedSigs.map((s, i) => (
+              <button
+                key={i}
+                type="button"
+                class="sig-reuse__thumb"
+                aria-label={t.dialogs.signature.reuse}
+                onClick={() => { onConfirm(s.bytes, s.aspect); onClose() }}
+              >
+                <img src={s.dataUrl} alt="" style={{ height: '40px', width: 'auto', display: 'block' }} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div class="sig-modeswitch">
         <SegmentedControl<Mode>
           value={mode}

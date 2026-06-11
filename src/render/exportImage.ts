@@ -19,6 +19,12 @@ export async function renderDescriptorToCanvas(
   if (!ctx) throw new Error('Canvas not available')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await page.render({ canvasContext: ctx, viewport, background: '#ffffff' } as any).promise
+  // One-shot export: release the page's decoded resources.
+  try {
+    await page.cleanup()
+  } catch {
+    /* ignore */
+  }
   return canvas
 }
 

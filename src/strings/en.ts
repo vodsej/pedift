@@ -63,6 +63,11 @@ export const en = {
     addFiles: 'Add files',
     addMore: 'Add more',
     chooseFiles: 'Choose files',
+    moveUp: 'Move up',
+    moveDown: 'Move down',
+    dismiss: 'Dismiss',
+    fromPage: 'From page',
+    toPage: 'To page',
   },
 
   workspace: {

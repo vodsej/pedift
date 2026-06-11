@@ -31,6 +31,7 @@ import {
   IconZoomIn,
   IconZoomOut,
   IconFit,
+  IconFitPage,
   IconSave,
   IconShield,
   IconUndo,
@@ -93,6 +94,7 @@ export function Workspace({
   const [showSignature, setShowSignature] = useState(false)
   const [cropMode, setCropMode] = useState(false)
   const [docDialog, setDocDialog] = useState<DocAction | null>(null)
+  const [pageAspect, setPageAspect] = useState(1.414)
 
   const onDocAction = (a: DocAction) => {
     if (a === 'crop') {
@@ -160,7 +162,19 @@ export function Workspace({
   const zoomBy = (factor: number) =>
     setZoom((z) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z * factor * 100) / 100)))
 
+  const fitPage = () => {
+    const el = stageRef.current
+    if (!el || !pageAspect) {
+      setZoom(1)
+      return
+    }
+    const availH = el.clientHeight - 90 // statusbar + padding
+    const z = availH / (baseWidth * pageAspect)
+    setZoom(Math.min(1, Math.max(ZOOM_MIN, z)))
+  }
+
   const save = async () => {
+    if (saving) return
     setSaving(true)
     try {
       const bytes = await editor.build()
@@ -226,7 +240,10 @@ export function Workspace({
     <div class="workspace">
       <header class="topbar">
         <div class="topbar__left">
-          <IconButton label={t.workspace.closeDocument} onClick={() => setDialog('confirmClose')}>
+          <IconButton
+            label={t.workspace.closeDocument}
+            onClick={() => (editor.canUndo ? setDialog('confirmClose') : onClose())}
+          >
             <IconChevronLeft />
           </IconButton>
           <span class="topbar__filename" title={fileName}>
@@ -251,6 +268,9 @@ export function Workspace({
           </IconButton>
           <IconButton label={t.workspace.fitWidth} onClick={() => setZoom(1)}>
             <IconFit />
+          </IconButton>
+          <IconButton label={t.workspace.fitPage} onClick={fitPage}>
+            <IconFitPage />
           </IconButton>
         </div>
 
@@ -300,6 +320,7 @@ export function Workspace({
                 registry={registry}
                 descriptor={currentDescriptor}
                 cssWidth={cssWidth}
+                onAspect={setPageAspect}
                 renderOverlay={(geometry) =>
                   cropMode ? (
                     <CropOverlay

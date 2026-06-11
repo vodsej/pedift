@@ -54,7 +54,9 @@ export async function openPdfDocument(
       if ((e.kind === 'encrypted' || e.kind === 'wrong-password') && opts.requestPassword) {
         lastWasWrong = e.kind === 'wrong-password' || lastWasWrong
         const pw = await opts.requestPassword(lastWasWrong)
-        if (pw == null) throw e
+        // User cancelled — surface as 'encrypted' so callers can treat it as a
+        // silent abort (distinct from the 'wrong-password' max-attempts failure).
+        if (pw == null) throw new PdfError('encrypted', 'Cancelled', e)
         password = pw
         lastWasWrong = true
         continue
@@ -68,8 +70,8 @@ export async function openPdfDocument(
 export async function destroyPdf(doc: PDFDocumentProxy | null | undefined): Promise<void> {
   if (!doc) return
   try {
-    await doc.cleanup()
-    await (doc as unknown as { destroy?: () => Promise<void> }).destroy?.()
+    // loadingTask.destroy() tears down the worker-side document + releases buffers.
+    await doc.loadingTask.destroy()
   } catch {
     /* ignore */
   }

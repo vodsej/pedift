@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'preact/hooks'
+import { useRef, useEffect, useState } from 'preact/hooks'
 import { Dialog } from './components/Dialog'
 import { Button } from './components/Button'
 import { IconLock } from './icons'
@@ -12,6 +12,8 @@ interface Props {
 
 export function PasswordDialog({ wrong, onSubmit, onCancel }: Props) {
   const ref = useRef<HTMLInputElement>(null)
+  const [emptyError, setEmptyError] = useState(false)
+
   useEffect(() => {
     ref.current?.focus()
   }, [])
@@ -19,7 +21,8 @@ export function PasswordDialog({ wrong, onSubmit, onCancel }: Props) {
   const submit = (e: Event) => {
     e.preventDefault()
     const v = ref.current?.value ?? ''
-    if (v) onSubmit(v)
+    if (!v) { setEmptyError(true); return }
+    onSubmit(v)
   }
 
   return (
@@ -44,7 +47,9 @@ export function PasswordDialog({ wrong, onSubmit, onCancel }: Props) {
           type="password"
           placeholder={t.errors.passwordPrompt}
           autocomplete="off"
+          onInput={() => setEmptyError(false)}
         />
+        {emptyError && !wrong && <p class="form-error">{t.dialogs.protect.empty}</p>}
         {wrong && <p class="form-error">{t.errors.wrongPassword}</p>}
       </form>
     </Dialog>

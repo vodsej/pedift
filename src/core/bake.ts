@@ -121,9 +121,11 @@ async function bakeOne(page: PDFPage, obj: OverlayObject, assets: BakeAssets): P
     }
     case 'stamp': {
       const font = await assets.fontFor('Helvetica')
+      // Match the on-screen flex-centered stamp: center the text in its box.
+      const textWidth = font.widthOfTextAtSize(obj.text, obj.fontSize)
       page.drawText(obj.text, {
-        x: obj.x,
-        y: obj.y,
+        x: obj.x + (obj.width - textWidth) / 2,
+        y: obj.y + (obj.height - obj.fontSize) / 2,
         size: obj.fontSize,
         font,
         color: hexToRgb(obj.color),

@@ -39,21 +39,26 @@ const code = stripComments(html)
 // XML namespace / schema URIs and library placeholder hosts are string constants
 // baked into pdf.js and Preact — they are identifiers, never fetched. Allowlist by
 // host so the guard still catches a real CDN/font/script URL.
-const ALLOWED_HOSTS = [
+// Hosts that allow subdomains (namespace / schema URIs — identifiers, never fetched)
+const ALLOWED_SUBDOMAIN_HOSTS = [
   'www.w3.org', // SVG / MathML / XHTML / XSL / xmldsig namespaces
   'www.xfa.org', // XFA form schemas inside pdf.js
   'ns.adobe.com', // XDP / XMP / XFDF namespaces inside pdf.js
   'purl.org', // Dublin Core metadata namespace
   'example.com', // pdf.js URL-handling placeholders
   'foo.bar', // pdf.js placeholders
-  'github.com', // pdf-lib producer-metadata attribution string
   'rolldown.rs', // rolldown's dormant __require interop guard message
+]
+// Hosts that must match exactly — no subdomain pass-through
+const ALLOWED_EXACT_HOSTS = [
+  'github.com', // pdf-lib producer-metadata attribution string
 ]
 const isAllowed = (u) => {
   if (u.includes('${')) return true // template-literal artifacts (e.g. http://${e})
   const m = u.match(/^(?:https?:|wss?:)\/\/([^/]+)/)
   const host = m ? m[1] : ''
-  return ALLOWED_HOSTS.some((h) => host === h || host.endsWith('.' + h) || host === 'www.' + h)
+  if (ALLOWED_EXACT_HOSTS.includes(host)) return true
+  return ALLOWED_SUBDOMAIN_HOSTS.some((h) => host === h || host.endsWith('.' + h) || host === 'www.' + h)
 }
 
 // remote protocol references that would require the network

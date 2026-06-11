@@ -67,7 +67,7 @@ export function FileRow({
       </div>
       <div class="qt-actions">
         <IconButton
-          label="Move up"
+          label={t.common.moveUp}
           onClick={onMoveUp}
           disabled={index === 0}
         >
@@ -76,7 +76,7 @@ export function FileRow({
           </svg>
         </IconButton>
         <IconButton
-          label="Move down"
+          label={t.common.moveDown}
           onClick={onMoveDown}
           disabled={index === total - 1}
         >

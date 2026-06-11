@@ -55,7 +55,7 @@ export function DocumentMenu({ onSelect }: { onSelect: (a: DocAction) => void })
 
   return (
     <div class="docmenu" ref={ref}>
-      <Button variant="secondary" onClick={() => setOpen((v) => !v)}>
+      <Button variant="secondary" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open}>
         <IconMenu size={18} /> {t.workspace.documentMenu}
       </Button>
       {open && (

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'preact/hooks'
 import type { ComponentChildren } from 'preact'
 import { IconButton } from './Button'
 import { IconClose } from '../icons'
+import { t } from '../../strings/en'
 
 interface DialogProps {
   title: string
@@ -46,7 +47,7 @@ export function Dialog({ title, onClose, children, footer, size = 'md', icon }: 
             {icon && <span class="modal__icon">{icon}</span>}
             {title}
           </h2>
-          <IconButton label="Close" onClick={onClose}>
+          <IconButton label={t.common.close} onClick={onClose}>
             <IconClose />
           </IconButton>
         </header>

@@ -21,6 +21,8 @@ export interface SourceRef {
   name: string
   /** Password needed to open this source (if it is encrypted). */
   password?: string
+  /** Per-page /Rotate angles, so inserted pages keep their orientation. */
+  pageRotations?: number[]
 }
 
 /** One page in the working document, pointing back at a source page. */
