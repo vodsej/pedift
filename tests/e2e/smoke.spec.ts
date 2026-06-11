@@ -62,6 +62,24 @@ test('a. loads app: title and drop zone visible', async ({ page }) => {
   await expect(page.locator('.dropzone').first()).toBeVisible()
 })
 
+// ─── a2. No horizontal overflow on load ───────────────────────────────────────
+
+test('a2. layout: landing load produces no horizontal page scrollbar', async ({ page }) => {
+  await page.goto(APP)
+  await expect(page.locator('.dropzone').first()).toBeVisible()
+
+  // Regression guard: hidden tooltip pseudo-elements on corner controls (privacy
+  // badge / theme toggle) are position:absolute and contribute to the document's
+  // scroll width even at opacity:0 — that used to spawn a ~283px phantom horizontal
+  // scrollbar with nothing visible on the right. The root view must never overflow
+  // horizontally.
+  const overflow = await page.evaluate(() => {
+    const de = document.documentElement
+    return de.scrollWidth - de.clientWidth
+  })
+  expect(overflow).toBeLessThanOrEqual(0)
+})
+
 // ─── b. Open + render ─────────────────────────────────────────────────────────
 
 test('b. open + render: plain-3page.pdf renders canvas and status bar', async ({ page }) => {

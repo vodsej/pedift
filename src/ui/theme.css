@@ -130,6 +130,14 @@ body {
 
 #app {
   height: 100%;
+  /* The landing/workspace chrome never scrolls horizontally — all real scrolling
+     is delegated to inner regions (.stage__scroll, .pagespanel__list, .modal__body).
+     Clip horizontal overflow so hidden tooltip pseudo-elements on corner controls
+     (e.g. the privacy badge / theme toggle, which are position:absolute and still
+     contribute to scroll width at opacity:0) can't spawn a page-wide horizontal
+     scrollbar. `clip` (not `hidden`) leaves overflow-y visible so the landing page
+     still scrolls vertically on short viewports. */
+  overflow-x: clip;
 }
 
 button {
