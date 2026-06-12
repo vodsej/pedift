@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'preact/hooks'
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import type { EditorDocument } from '../core/document'
 import type { RenderRegistry } from '../render/registry'
 import { Button, IconButton } from './components/Button'
@@ -92,6 +92,7 @@ export function Workspace({
   const [dialog, setDialog] = useState<ActiveDialog>(null)
   const [saving, setSaving] = useState(false)
   const [stageRef, stageWidth] = useElementWidth<HTMLDivElement>()
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   // Overlay editing state.
   const [tool, setTool] = useState<ToolId>('select')
@@ -251,6 +252,21 @@ export function Workspace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, fileName])
 
+  // Ctrl+wheel / trackpad pinch zooms the PDF instead of the browser page.
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return // plain wheel -> native scroll
+      e.preventDefault() // block browser zoom (needs passive:false)
+      const dy = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY // lines -> px
+      const factor = Math.exp(-dy * 0.0015)
+      setZoom((z) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z * factor)))
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+
   return (
     <div class="workspace">
       <header class="topbar">
@@ -330,7 +346,7 @@ export function Workspace({
         </aside>
 
         <main class="stage" ref={stageRef}>
-          <div class="stage__scroll">
+          <div class="stage__scroll" ref={scrollRef}>
             {currentDescriptor && (
               <PageStage
                 registry={registry}
