@@ -1,6 +1,12 @@
 import { PDFDocument, StandardFonts, TextRenderingMode } from '@cantoo/pdf-lib'
-import fontkit from '@pdf-lib/fontkit'
 import type { DocState, OcrPageData, OcrWord, Rotation } from './types'
+
+/**
+ * The fontkit instance pdf-lib needs to embed a custom (Unicode) font. It is
+ * injected rather than imported here so `@pdf-lib/fontkit` (OCR-only, ~0.7 MB)
+ * never enters the lean bundle via core's always-imported module graph.
+ */
+export type Fontkit = Parameters<PDFDocument['registerFontkit']>[0]
 
 // Pure coordinate transforms (no DOM, no pdf-lib).
 
@@ -79,13 +85,14 @@ export async function applyOcrLayer(
   out: PDFDocument,
   state: DocState,
   fontBytes: Uint8Array | null,
+  fontkit: Fontkit | null,
 ): Promise<void> {
   const ocrData = state.ocrData
   if (!ocrData || Object.keys(ocrData).length === 0) return
 
   let font
-  if (fontBytes) {
-    out.registerFontkit(fontkit as Parameters<typeof out.registerFontkit>[0])
+  if (fontBytes && fontkit) {
+    out.registerFontkit(fontkit)
     font = await out.embedFont(fontBytes, { subset: true })
   } else {
     font = await out.embedFont(StandardFonts.Helvetica)

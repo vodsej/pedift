@@ -5,6 +5,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { resetIds } from '../../../src/core/ids'
 import { EditorDocument } from '../../../src/core/document'
+import fontkit from '@pdf-lib/fontkit'
 import { imagePointToPdf, ocrWordToPdfRect } from '../../../src/core/ocr'
 import type { OcrPageData, OcrWord } from '../../../src/core/types'
 
@@ -213,7 +214,7 @@ describe('applyOcrLayer round-trip', () => {
       pageHeightPts,
     }
 
-    doc.setOcrData({ [firstPageId]: ocrData }, dejaVuBytes)
+    doc.setOcrData({ [firstPageId]: ocrData }, dejaVuBytes, fontkit)
     const saved = await doc.build()
     const text = await extractPdfText(saved)
     expect(text).toContain('KUFRPENIZE')
@@ -241,7 +242,7 @@ describe('invisible text operator', () => {
       pageHeightPts,
     }
 
-    doc.setOcrData({ [firstPageId]: ocrData }, dejaVuBytes)
+    doc.setOcrData({ [firstPageId]: ocrData }, dejaVuBytes, fontkit)
     const saved = await doc.build()
     expect(containsInvisibleTextOperator(saved)).toBe(true)
   }, 30_000)
@@ -268,7 +269,7 @@ describe('Czech Unicode text', () => {
       pageHeightPts,
     }
 
-    doc.setOcrData({ [firstPageId]: ocrData }, dejaVuBytes)
+    doc.setOcrData({ [firstPageId]: ocrData }, dejaVuBytes, fontkit)
     const saved = await doc.build()
     const text = await extractPdfText(saved)
     expect(text).toContain('příliš')
@@ -291,7 +292,7 @@ describe('empty ocrData', () => {
     const bytes = fixture('plain-3page.pdf')
     const doc = await EditorDocument.open(bytes, 'plain-3page.pdf')
     // Directly call with empty ocrData via setOcrData
-    doc.setOcrData({}, null)
+    doc.setOcrData({}, null, null)
     const saved = await doc.build()
     expect(saved.length).toBeGreaterThan(0)
   }, 30_000)
