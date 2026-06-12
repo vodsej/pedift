@@ -187,6 +187,22 @@ export const IconCursor = (p: P) => (
     <path d="M3 3l7.07 17 2.51-7.39L20 10.07z" />
   </Svg>
 )
+export const IconSearch = (p: P) => (
+  <Svg {...p}>
+    <circle cx="11" cy="11" r="7" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </Svg>
+)
+export const IconChevronUp = (p: P) => (
+  <Svg {...p}>
+    <polyline points="18 15 12 9 6 15" />
+  </Svg>
+)
+export const IconChevronDown = (p: P) => (
+  <Svg {...p}>
+    <polyline points="6 9 12 15 18 9" />
+  </Svg>
+)
 export const IconText = (p: P) => (
   <Svg {...p}>
     <polyline points="4 7 4 4 20 4 20 7" />

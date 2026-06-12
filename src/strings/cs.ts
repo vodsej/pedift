@@ -106,6 +106,16 @@ export const cs: Strings = {
     selectedCount: (n: number) => `Vybráno: ${n}`,
   },
 
+  find: {
+    open: 'Najít',
+    placeholder: 'Najít v dokumentu',
+    previous: 'Předchozí výskyt',
+    next: 'Další výskyt',
+    close: 'Zavřít hledání',
+    noResults: 'Nic nenalezeno',
+    counter: (current: number, total: number) => `${current} z ${total}`,
+  },
+
   tools: {
     select: 'Vybrat',
     text: 'Textové pole',

@@ -35,7 +35,7 @@ ui → overlay → render → core        (everything may import core)
 ```
 
 - **`src/core/`** — document model + save pipeline, wraps `@cantoo/pdf-lib`. **No DOM** (sole exception: `compress.ts` uses canvas for JPEG re-encoding behind a `typeof document` guard, which is why it stays testable). This is why core unit tests need no jsdom.
-- **`src/render/`** — read-only pdf.js wrapper: page/thumbnail canvases, text layer. Imports core only.
+- **`src/render/`** — read-only pdf.js wrapper: page/thumbnail canvases, text layer, plus the pure (DOM/pdf.js-free) in-document search matcher (`search.ts`). Imports core only.
 - **`src/overlay/`** — interactive SVG/DOM annotation layer (select/move/resize). Imports core + strings only, not render or ui.
 - **`src/ui/`** — Preact components; the integrating layer. `Workspace.tsx`/`PageStage.tsx` wire `EditorDocument` + `RenderRegistry` + `OverlayLayer` together.
 
@@ -60,6 +60,7 @@ Saving **rebuilds from fresh** (`src/core/save.ts`): a new `PDFDocument.create()
 - Page/overlay ids (`src/core/ids.ts`) are deterministic session-local counters — never persist them.
 - **Redaction + OCR leak:** a flattened (redacted) page must not get the invisible OCR text layer re-drawn on top, or the redacted words become selectable again. `applyOcrLayer` takes a `skipPageIds` set (the redacted pages, supplied by `document.ts`'s `finalizeHook`) and skips them. If `rasterizeRedacted` is absent (headless/core-only — e.g. unit tests that don't wire it), redaction degrades to a cosmetic baked bar (`bake.ts` `'redaction'` case); true removal only happens when the UI rasterizer is wired.
 - **Select-mode text layer:** in Select mode `OverlayLayer`'s root is `pointer-events:none`, so empty-area drags fall through to `SelectableTextLayer` (`src/ui/SelectableTextLayer.tsx`) below it — an always-on pdf.js text layer (`buildSelectableTextLayer` in `src/render/textLayer.ts`, at CSS-px scale, *not* ×dpr) plus invisible OCR word spans from `state.ocrData`, giving native text selection/copy. Annotation objects/handles re-enable `pointer-events` and `stopPropagation`, so clicks on them still reach the overlay; the deselect-on-empty-click handler therefore lives on the text layer, not the (unreachable) overlay root. Don't restore `pointer-events` on the overlay root in select mode.
+- **Find / search (Ctrl+F):** whole-document. The cross-page match index + navigation live in `src/ui/hooks/useSearch.ts` (extraction cached per source page, invalidated on `registry.version`; `setCurrent` jumps to the active match's page); `SearchHighlightLayer` paints matches on the current page only. Both sides run the **same** pure matcher (`findInSegments` in `src/render/search.ts`) over the **same** segment list — native text via `buildPageSegments` (`textLayer.ts`) **plus** `ocrSegments` from `state.ocrData`. That shared segment ordering is load-bearing: the `N of M` counter and which highlight is "active" are aligned purely by match index, so if you change segment filtering/joining on one side you must change it on the other or they desync. `search.ts` is DOM/pdf.js-free on purpose and is unit-tested under `tests/unit/render/`. (Boxes differ by scale between the two sides; only strings/ordering must match, and those are scale-independent.)
 
 ### Strings
 

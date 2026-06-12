@@ -2,6 +2,7 @@ import { TextLayer, Util } from 'pdfjs-dist'
 import type { PDFPageProxy } from 'pdfjs-dist'
 import type { TextItem } from 'pdfjs-dist/types/src/display/api'
 import type { PageViewport } from 'pdfjs-dist/types/src/display/page_viewport'
+import type { SearchSegment } from './search'
 
 // Builds a selectable text layer over a rendered page (for highlight + replace
 // text), and exposes per-item bounding boxes in CSS-pixel space.
@@ -106,6 +107,34 @@ export async function getTextItemBoxes(
     index++
   }
   return boxes
+}
+
+/**
+ * Build search segments for a page: the reading text plus, per visible text
+ * item, a highlight box (CSS px, top-left). Unlike getTextItemBoxes this keeps
+ * whitespace items (so phrase search across word gaps works) and injects a space
+ * at line ends — those segments carry a null box (nothing to highlight). The
+ * segment order is deterministic for a page, so the same call at any scale yields
+ * the same sequence (only box values differ), which is what lets the search index
+ * and the on-screen highlight layer agree on match positions.
+ */
+export async function buildPageSegments(
+  page: PDFPageProxy,
+  viewport: PageViewport,
+  dpr: number,
+): Promise<SearchSegment[]> {
+  const textContent = await page.getTextContent()
+  const segments: SearchSegment[] = []
+  for (const raw of textContent.items) {
+    const item = raw as TextItem
+    if (typeof item.str !== 'string') continue // skip TextMarkedContent markers
+    if (item.str.length > 0) {
+      const b = textItemToCssBox(item, viewport, dpr)
+      segments.push({ str: item.str, box: b.width > 0 && b.height > 0 ? b : null })
+    }
+    if (item.hasEOL) segments.push({ str: ' ', box: null })
+  }
+  return segments
 }
 
 /** Map a text item to a CSS-pixel rect (top-left origin) over the page. */

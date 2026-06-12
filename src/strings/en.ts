@@ -97,6 +97,16 @@ export const en = {
     selectedCount: (n: number) => `${n} selected`,
   },
 
+  find: {
+    open: 'Find',
+    placeholder: 'Find in document',
+    previous: 'Previous match',
+    next: 'Next match',
+    close: 'Close find',
+    noResults: 'No results',
+    counter: (current: number, total: number) => `${current} of ${total}`,
+  },
+
   tools: {
     select: 'Select',
     text: 'Text box',

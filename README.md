@@ -47,10 +47,11 @@ same single-file guarantees. All processing happens locally in your browser.
   text layer, so the PDF becomes selectable and searchable — still fully offline,
   still one file, nothing uploaded
 
-Plus: select & copy text right in the viewer (native PDF text, plus OCR results in
+Plus: **find text (Ctrl+F)** with match highlighting and jump-to-match across all
+pages, select & copy text right in the viewer (native PDF text, plus OCR results in
 the OCR edition), warm light + dark themes, tooltips, keyboard shortcuts
-(undo/redo/save/zoom), drag-and-drop, touch support, and a strict "the loaded
-original is never mutated" guarantee — every save produces a new download.
+(find / undo / redo / save / zoom), drag-and-drop, touch support, and a strict "the
+loaded original is never mutated" guarantee — every save produces a new download.
 
 ## Develop
 
@@ -78,8 +79,8 @@ Four layers with strict boundaries (see `docs/superpowers/`):
   it replays the current state into a brand-new pdf-lib document, so the loaded
   original is never touched.
 - **`src/render/`** — wraps Mozilla **pdf.js** (read-only): page/thumbnail
-  canvases, text layer, zoom. The worker is inlined as a `data:` URL so it runs
-  from `file://`.
+  canvases, text layer, zoom, and a DOM-free in-document text search matcher. The
+  worker is inlined as a `data:` URL so it runs from `file://`.
 - **`src/overlay/`** — the interactive SVG/DOM editing layer. Overlay objects live
   here (selectable/movable/resizable) and are baked into page content on save.
 - **`src/ui/`** — Preact components: landing, workspace, toolbars, dialogs, toasts,

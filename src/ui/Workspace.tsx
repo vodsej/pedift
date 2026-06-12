@@ -13,6 +13,8 @@ import { rasterizeRedactedPage } from '../render/redactRaster'
 import { CropOverlay } from '../overlay/CropOverlay'
 import { TextSelectLayer } from './TextSelectLayer'
 import { SelectableTextLayer } from './SelectableTextLayer'
+import { SearchHighlightLayer } from './SearchHighlightLayer'
+import { FindBar } from './FindBar'
 import { PreviewLayer } from '../overlay/PreviewLayer'
 import { DocumentMenu, type DocAction } from './DocumentMenu'
 import { SplitDialog } from './dialogs/SplitDialog'
@@ -28,6 +30,7 @@ import { ProtectDialog } from './dialogs/ProtectDialog'
 import { CompressDialog } from './dialogs/CompressDialog'
 import { useEditorState } from './hooks/useEditor'
 import { useElementWidth } from './hooks/useElementWidth'
+import { useSearch } from './hooks/useSearch'
 import { defaultToolOptions, type ToolId, type ToolOptions, type InsertRequest } from '../overlay/tools'
 import { detectImageFormat } from '../core/imagesToPdf'
 import {
@@ -37,6 +40,7 @@ import {
   IconFit,
   IconFitPage,
   IconSave,
+  IconSearch,
   IconShield,
   IconUndo,
   IconRedo,
@@ -104,6 +108,7 @@ export function Workspace({
   const [cropMode, setCropMode] = useState(false)
   const [docDialog, setDocDialog] = useState<DocAction | null>(null)
   const [pageAspect, setPageAspect] = useState(1.414)
+  const search = useSearch(editor, registry)
   const [OcrDialogComp, setOcrDialogComp] =
     useState<null | typeof import('./dialogs/OcrDialog')['OcrDialog']>(null)
 
@@ -261,6 +266,30 @@ export function Workspace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, fileName])
 
+  // Find (Ctrl+F) — handled separately so it fires even from inputs (to override
+  // the browser's own find) and only when no modal dialog is in front.
+  useEffect(() => {
+    const modalOpen = dialog !== null || docDialog !== null || showSignature
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey
+      if (mod && e.key.toLowerCase() === 'f' && !modalOpen) {
+        e.preventDefault()
+        search.setOpen(true)
+      } else if (e.key === 'Escape' && search.open && !modalOpen) {
+        search.setOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [search.open, search.setOpen, dialog, docDialog, showSignature])
+
+  // Jump the viewed page to the active match (and the highlight layer scrolls to it).
+  useEffect(() => {
+    const m = search.activeMatch
+    if (m && m.pageId !== current) setCurrent(m.pageId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.activeMatch])
+
   // Ctrl+wheel / trackpad pinch zooms the PDF instead of the browser page.
   useEffect(() => {
     const el = scrollRef.current
@@ -312,6 +341,14 @@ export function Workspace({
           <IconButton label={t.workspace.fitPage} onClick={fitPage}>
             <IconFitPage />
           </IconButton>
+          <span class="topbar__divider" />
+          <IconButton
+            label={t.find.open}
+            active={search.open}
+            onClick={() => search.setOpen(!search.open)}
+          >
+            <IconSearch />
+          </IconButton>
         </div>
 
         <div class="topbar__right">
@@ -355,6 +392,7 @@ export function Workspace({
         </aside>
 
         <main class="stage" ref={stageRef}>
+          {search.open && <FindBar search={search} />}
           <div class="stage__scroll" ref={scrollRef}>
             {currentDescriptor && (
               <PageStage
@@ -364,6 +402,20 @@ export function Workspace({
                 onAspect={setPageAspect}
                 renderOverlay={(geometry) => (
                   <>
+                    {search.open && search.effectiveQuery && (
+                      <SearchHighlightLayer
+                        editor={editor}
+                        registry={registry}
+                        descriptor={currentDescriptor}
+                        geometry={geometry}
+                        query={search.effectiveQuery}
+                        activeLocalIndex={
+                          search.activeMatch && search.activeMatch.pageId === currentDescriptor.id
+                            ? search.activeMatch.localIndex
+                            : -1
+                        }
+                      />
+                    )}
                     {cropMode ? (
                       <CropOverlay
                         geometry={geometry}
