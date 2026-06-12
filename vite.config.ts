@@ -25,9 +25,30 @@ import { fileURLToPath } from 'node:url'
 // - build.emptyOutDir: false → build:all keeps both editions; postbuild.mjs handles cleanup.
 const isOcr = !!process.env.PEDIFT_OCR
 
+// tesseract-wasm's bundled Emscripten glue references its wasm via
+// `new URL('./tesseract-core.wasm', import.meta.url)` as a fallback. With
+// assetsInlineLimit:()=>true, Vite inlines that as a ~2.3 MB (uncompressed)
+// `data:application/wasm;base64,…` URL. That fallback is DEAD: we always pass
+// `wasmBinary` (decoded from the gzipped @ocr/assets copy), and Emscripten skips
+// the data-URL path when wasmBinary is set. Empty the dead URL so the OCR edition
+// doesn't ship a second copy of the wasm. (OCR build only.)
+const dropDeadTesseractWasm = {
+  name: 'pedift:drop-dead-tesseract-wasm',
+  apply: 'build' as const,
+  enforce: 'post' as const,
+  renderChunk(code: string) {
+    const re = /data:application\/wasm;base64,[A-Za-z0-9+/=]+/g
+    return re.test(code) ? code.replace(re, 'data:application/wasm;base64,') : null
+  },
+}
+
 export default defineConfig({
   base: './',
-  plugins: [preact(), viteSingleFile({ removeViteModuleLoader: true })],
+  plugins: [
+    preact(),
+    viteSingleFile({ removeViteModuleLoader: true }),
+    ...(isOcr ? [dropDeadTesseractWasm] : []),
+  ],
   define: {
     __OCR__: JSON.stringify(isOcr),
   },
