@@ -55,6 +55,37 @@ export async function buildTextLayer(
   return { layer, boxes }
 }
 
+/**
+ * Renders a *selectable* pdf.js text layer into `container` and returns the
+ * layer (so the caller can `.cancel()` it on cleanup). This powers in-app text
+ * selection/copy, so — unlike buildTextLayer — `viewport` must be at CSS-px
+ * scale (`cssScale`, NOT ×dpr): the text layer is DOM measured in CSS px, while
+ * only the canvas uses device px. The `.textLayer` CSS in overlay.css consumes
+ * the `--total-scale-factor` set here to size/position the spans.
+ */
+export async function buildSelectableTextLayer(
+  page: PDFPageProxy,
+  viewport: PageViewport,
+  container: HTMLElement,
+): Promise<TextLayer> {
+  container.replaceChildren()
+  // CSS px per point; read by setLayerDimensions + the per-span font-size/transform.
+  container.style.setProperty('--total-scale-factor', String(viewport.scale))
+  container.style.setProperty('--scale-factor', String(viewport.scale))
+  container.style.setProperty('--scale-round-x', '1px')
+  container.style.setProperty('--scale-round-y', '1px')
+
+  const textContent = await page.getTextContent()
+  const layer = new TextLayer({ textContentSource: textContent, container, viewport })
+  await layer.render()
+  // setLayerDimensions sizes the container from the unrotated raw dims; override
+  // with the rotated display size (viewport already carries the rotation) so
+  // spans are never clipped on 90°/270° pages.
+  container.style.width = `${viewport.width}px`
+  container.style.height = `${viewport.height}px`
+  return layer
+}
+
 /** Get text-item boxes (CSS px) for a page without rendering a DOM text layer. */
 export async function getTextItemBoxes(
   page: PDFPageProxy,

@@ -11,6 +11,7 @@ import { AnnotateToolbar } from './AnnotateToolbar'
 import { OverlayLayer } from '../overlay/OverlayLayer'
 import { CropOverlay } from '../overlay/CropOverlay'
 import { TextSelectLayer } from './TextSelectLayer'
+import { SelectableTextLayer } from './SelectableTextLayer'
 import { PreviewLayer } from '../overlay/PreviewLayer'
 import { DocumentMenu, type DocAction } from './DocumentMenu'
 import { SplitDialog } from './dialogs/SplitDialog'
@@ -357,18 +358,29 @@ export function Workspace({
                         }}
                       />
                     ) : (
-                      <OverlayLayer
-                        editor={editor}
-                        pageId={currentDescriptor.id}
-                        geometry={geometry}
-                        tool={tool}
-                        options={toolOptions}
-                        selectedId={overlaySel}
-                        setSelectedId={setOverlaySel}
-                        onPlaced={() => setTool('select')}
-                        insertRequest={insertRequest}
-                        onInsertConsumed={() => setInsertRequest(null)}
-                      />
+                      <>
+                        {tool === 'select' && (
+                          <SelectableTextLayer
+                            editor={editor}
+                            registry={registry}
+                            descriptor={currentDescriptor}
+                            geometry={geometry}
+                            onDeselect={() => setOverlaySel(null)}
+                          />
+                        )}
+                        <OverlayLayer
+                          editor={editor}
+                          pageId={currentDescriptor.id}
+                          geometry={geometry}
+                          tool={tool}
+                          options={toolOptions}
+                          selectedId={overlaySel}
+                          setSelectedId={setOverlaySel}
+                          onPlaced={() => setTool('select')}
+                          insertRequest={insertRequest}
+                          onInsertConsumed={() => setInsertRequest(null)}
+                        />
+                      </>
                     )}
                     <PreviewLayer
                       editor={editor}

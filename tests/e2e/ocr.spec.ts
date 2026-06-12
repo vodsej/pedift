@@ -83,6 +83,30 @@ test('ocr: scanned.pdf becomes text-searchable after OCR run', async ({ page }) 
   //    that OCR succeeded (it closes on success and shows a toast).
   await expect(dialog).not.toBeVisible({ timeout: 90_000 })
 
+  // 6.5. In-app: the recognized text is now selectable over the scanned page.
+  //      SelectableTextLayer (Select tool, the default) renders invisible
+  //      .ocr-word spans straight from editor.state.ocrData — no save needed.
+  const ocrWords = page.locator('.selectable-text-layer .ocr-word')
+  await expect.poll(() => ocrWords.count(), { timeout: 15_000 }).toBeGreaterThan(0)
+  const selectedInApp = await page.evaluate(() => {
+    const layer = document.querySelector('.selectable-text-layer')
+    if (!layer) return ''
+    const sel = window.getSelection()
+    const range = document.createRange()
+    range.selectNodeContents(layer)
+    sel?.removeAllRanges()
+    sel?.addRange(range)
+    return sel?.toString() ?? ''
+  })
+  // Proves the OCR spans are real selectable text (accuracy is asserted via the
+  // saved-PDF extraction below); require at least one high-confidence token.
+  const inAppLower = selectedInApp.toLowerCase()
+  const inAppTokens = ['invoice', '12345', 'fox', 'customer'].filter((t) => inAppLower.includes(t)).length
+  expect(
+    inAppTokens,
+    `in-app OCR selection had ${inAppTokens} tokens: ${selectedInApp.slice(0, 200)}`,
+  ).toBeGreaterThanOrEqual(1)
+
   // 7. Save: set up download listener BEFORE clicking, then save.
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: /save/i }).click()

@@ -685,3 +685,71 @@ test('o. crop preview: crop outline visible after apply and save produces valid 
   expect(bytes.slice(0, 5).toString('ascii')).toBe('%PDF-')
   expect(bytes.length).toBeGreaterThan(500)
 })
+
+// ─── p. Selectable text in the viewer ─────────────────────────────────────────
+
+test('p. selectable text: native text layer renders and is copy-selectable in Select mode', async ({
+  page,
+}) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
+  await waitForCanvas(page)
+
+  // The selectable text layer mounts for the default Select tool; pdf.js fills it
+  // with one span per text run.
+  const spans = page.locator('.selectable-text-layer .textLayer span')
+  await expect.poll(() => spans.count(), { timeout: 30_000 }).toBeGreaterThan(0)
+
+  // Select the whole text layer programmatically and read the selection — this is
+  // exactly what Ctrl/Cmd+C copies, so it proves the text is selectable/copyable.
+  const selected = await page.evaluate(() => {
+    const layer = document.querySelector('.selectable-text-layer .textLayer')
+    if (!layer) return ''
+    const sel = window.getSelection()
+    const range = document.createRange()
+    range.selectNodeContents(layer)
+    sel?.removeAllRanges()
+    sel?.addRange(range)
+    return sel?.toString() ?? ''
+  })
+  expect(selected.toLowerCase()).toContain('quick brown fox')
+})
+
+// ─── q. Annotation drag still works with the text layer present ────────────────
+
+test('q. select-mode move: an annotation drags across empty area (pointer capture over the none-root)', async ({
+  page,
+}) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
+  await waitForCanvas(page)
+
+  // Place a text box, then leave edit mode → tool returns to Select, so the
+  // selectable text layer is now mounted BELOW the (pointer-events:none) overlay.
+  await page.getByRole('button', { name: 'Text box' }).click()
+  await page.locator('.overlay').click({ position: { x: 140, y: 140 } })
+  const ta = page.locator('textarea.overlay-text-edit')
+  await ta.waitFor({ timeout: 5_000 })
+  await ta.fill('DRAGME')
+  await page.keyboard.press('Escape')
+
+  const obj = page.locator('.overlay-obj').first()
+  const before = await obj.boundingBox()
+  expect(before).not.toBeNull()
+
+  // Drag from the object's centre out into empty page area (well beyond the box),
+  // which is where the move gesture's deferred setPointerCapture fires on the
+  // pointer-events:none overlay root. If capture didn't survive that, the box
+  // would stop following the cursor and the delta would be ~0.
+  const cx = before!.x + before!.width / 2
+  const cy = before!.y + before!.height / 2
+  await page.mouse.move(cx, cy)
+  await page.mouse.down()
+  await page.mouse.move(cx + 130, cy + 110, { steps: 12 })
+  await page.mouse.up()
+
+  const after = await obj.boundingBox()
+  expect(after).not.toBeNull()
+  expect(after!.x - before!.x).toBeGreaterThan(90)
+  expect(after!.y - before!.y).toBeGreaterThan(70)
+})

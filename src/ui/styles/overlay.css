@@ -13,6 +13,11 @@
 .overlay--draw {
   cursor: crosshair;
 }
+/* In select mode the interactive root is click-through so empty-area drags reach
+   the selectable text layer below; annotation objects/handles re-enable hits. */
+.overlay--select {
+  pointer-events: none;
+}
 .overlay-obj {
   box-sizing: border-box;
 }
@@ -68,6 +73,8 @@ html[data-theme='dark'] .overlay-text-edit {
   cursor: nwse-resize;
   z-index: 6;
   touch-action: none;
+  /* Explicit so handles stay hittable when the select-mode root is none. */
+  pointer-events: auto;
 }
 
 /* Live preview of watermark / page numbers / crop (non-interactive) */
@@ -98,6 +105,67 @@ html[data-theme='dark'] .overlay-text-edit {
 .textselect__run:hover {
   background: var(--accent-ring);
   outline: 1px solid var(--accent);
+}
+
+/* Always-on selectable text overlay (Select tool): pdf.js native text layer
+   (src/ui/SelectableTextLayer.tsx) + invisible OCR word spans. The .textLayer
+   rules are the pdfjs-dist 6.0.227 web/pdf_viewer.css block, de-nested and
+   scoped here (the bundle never imports that stylesheet). All text is
+   transparent — the real glyphs come from the canvas below; selection paints a
+   translucent highlight over them, matching a normal PDF reader. */
+.selectable-text-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.selectable-text-layer .ocr-word {
+  position: absolute;
+  color: transparent;
+  white-space: pre;
+  line-height: 1;
+  cursor: text;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.selectable-text-layer .textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  line-height: 1;
+  text-align: initial;
+  transform-origin: 0 0;
+  forced-color-adjust: none;
+  z-index: 0;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+.selectable-text-layer .textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.selectable-text-layer .textLayer > :not(.markedContent),
+.selectable-text-layer .textLayer .markedContent span:not(.markedContent) {
+  z-index: 1;
+  --font-height: 0;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+.selectable-text-layer .textLayer .markedContent {
+  display: contents;
+}
+/* pdf.js hides its own selection for a custom highlight layer we don't use, so
+   restore a visible one. */
+.selectable-text-layer .textLayer ::selection,
+.selectable-text-layer .ocr-word::selection {
+  background: var(--accent-ring);
 }
 
 /* Crop overlay */
