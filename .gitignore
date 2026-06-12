@@ -5,3 +5,6 @@ test-results/
 playwright-report/
 e2e/.cache/
 *.log
+
+# OCR edition: generated TS modules (rebuilt by scripts/prebuild-ocr.mjs)
+src/ocr/vendor/*.gen.ts
