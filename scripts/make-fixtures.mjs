@@ -1,7 +1,7 @@
 // Generates small fixture PDFs/images used by unit + e2e tests.
 // Run once with `npm run fixtures`; the outputs are committed to tests/fixtures/.
 import { PDFDocument, StandardFonts, rgb } from '@cantoo/pdf-lib'
-import { writeFileSync, mkdirSync } from 'node:fs'
+import { writeFileSync, mkdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -81,6 +81,21 @@ async function save(name, doc) {
   const page = doc.addPage([842, 595])
   page.drawText('Landscape', { x: 60, y: 520, size: 28, font, color: rgb(0, 0, 0) })
   await save('landscape.pdf', doc)
+}
+
+// 5. scanned.pdf — a single page that is a full-page IMAGE of text with NO text
+//    layer, so it looks like a scan. Used by the OCR e2e: OCR must recognise the
+//    pixels and add a searchable text layer. The source PNG (scanned-page.png) is
+//    a committed binary; regenerate it with a canvas if it ever needs changing.
+{
+  const doc = await PDFDocument.create()
+  const pngBytes = readFileSync(path.join(dir, 'scanned-page.png'))
+  const png = await doc.embedPng(pngBytes)
+  // A4 portrait; draw the image to fill the page (no drawText → no text layer).
+  const page = doc.addPage([595, 842])
+  page.drawImage(png, { x: 0, y: 0, width: 595, height: 842 })
+  doc.setTitle('Scanned fixture (no text layer)')
+  await save('scanned.pdf', doc)
 }
 
 console.log('Fixtures ready. Commit tests/fixtures/*.pdf')
