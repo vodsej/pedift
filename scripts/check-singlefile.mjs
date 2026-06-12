@@ -1,6 +1,7 @@
-// CI guard: asserts the build output is exactly ONE self-contained pedift.html with
+// CI guard: asserts the build output is one or both self-contained artifacts with
 // no external network references (no remote URLs, no leftover module/asset links).
-// Run after `npm run build`.
+// Validates whichever of {pedift.html, pedift-ocr.html} exist in dist/.
+// Run after `npm run build` and/or `npm run build:ocr`.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -11,18 +12,19 @@ const fail = (msg) => {
   failed = true
 }
 
-// 1. Exactly one file, named pedift.html
+// 1. dist/ must contain ONLY allowed artifact filenames; at least one must exist.
+const ALLOWED = new Set(['pedift.html', 'pedift-ocr.html'])
+const SIZE_CEILING_MB = { 'pedift.html': 6, 'pedift-ocr.html': 14 }
+
 const entries = readdirSync(dist)
-if (entries.length !== 1 || entries[0] !== 'pedift.html') {
-  fail(`dist/ must contain exactly one file (pedift.html); found: ${entries.join(', ')}`)
+const strays = entries.filter((e) => !ALLOWED.has(e))
+if (strays.length) {
+  fail(`dist/ contains unexpected entries: ${strays.join(', ')}`)
 }
-
-const htmlPath = join(dist, 'pedift.html')
-const html = readFileSync(htmlPath, 'utf8')
-const sizeMB = statSync(htmlPath).size / 1024 / 1024
-
-// 2. Size sanity (spec target ~4-6 MB, allow headroom)
-if (sizeMB > 12) fail(`artifact is ${sizeMB.toFixed(2)} MB, exceeds 12 MB ceiling`)
+const present = entries.filter((e) => ALLOWED.has(e))
+if (present.length === 0) {
+  fail('dist/ contains neither pedift.html nor pedift-ocr.html')
+}
 
 // 3. No external network references. Strip license/source-map comment URLs first.
 // Allowlist: URLs that only appear inside comments (license headers) are fine.
@@ -33,8 +35,6 @@ const stripComments = (s) =>
     // strip single-line // comments only when they look like license/sourcemap lines
     .replace(/^[ \t]*\/\/[^\n]*$/gm, '')
     .replace(/\/\/# sourceMappingURL=[^\n"']*/g, '')
-
-const code = stripComments(html)
 
 // XML namespace / schema URIs and library placeholder hosts are string constants
 // baked into pdf.js and Preact — they are identifiers, never fetched. Allowlist by
@@ -61,24 +61,41 @@ const isAllowed = (u) => {
   return ALLOWED_SUBDOMAIN_HOSTS.some((h) => host === h || host.endsWith('.' + h) || host === 'www.' + h)
 }
 
-// remote protocol references that would require the network
-const remote = (code.match(/(https?:|wss?:)\/\/[^\s"'`)]+/g) || []).filter((u) => !isAllowed(u))
-// data:, blob:, file: are fine offline. Filter those out (already excluded by regex).
-if (remote.length) {
-  // de-dupe for readable output
-  const uniq = [...new Set(remote)].slice(0, 20)
-  fail(`found ${remote.length} remote URL reference(s) in artifact:\n  ` + uniq.join('\n  '))
+const checkFile = (name) => {
+  const htmlPath = join(dist, name)
+  const html = readFileSync(htmlPath, 'utf8')
+  const sizeMB = statSync(htmlPath).size / 1024 / 1024
+
+  // 2. Per-file size ceiling
+  const ceiling = SIZE_CEILING_MB[name]
+  if (sizeMB > ceiling) fail(`${name} is ${sizeMB.toFixed(2)} MB, exceeds ${ceiling} MB ceiling`)
+
+  const code = stripComments(html)
+
+  // 3. No external network references
+  const remote = (code.match(/(https?:|wss?:)\/\/[^\s"'`)]+/g) || []).filter((u) => !isAllowed(u))
+  // data:, blob:, file: are fine offline. Filter those out (already excluded by regex).
+  if (remote.length) {
+    // de-dupe for readable output
+    const uniq = [...new Set(remote)].slice(0, 20)
+    fail(`found ${remote.length} remote URL reference(s) in ${name}:\n  ` + uniq.join('\n  '))
+  }
+
+  // 4. No leftover external module/script/link tags pointing at separate files
+  const externalScript = html.match(/<script[^>]+src=["'](?!data:)[^"']+["']/g) || []
+  if (externalScript.length) fail(`found external <script src> in ${name}: ${externalScript.join(', ')}`)
+  const externalLink =
+    html.match(/<link[^>]+href=["'](?!data:)[^"']+\.(css|js|woff2?|png|svg)["']/g) || []
+  if (externalLink.length) fail(`found external <link href> in ${name}: ${externalLink.join(', ')}`)
+
+  console.log(`check:singlefile OK — ${name}, ${sizeMB.toFixed(2)} MB, no external refs`)
 }
 
-// 4. No leftover external module/script/link tags pointing at separate files
-const externalScript = html.match(/<script[^>]+src=["'](?!data:)[^"']+["']/g) || []
-if (externalScript.length) fail(`found external <script src>: ${externalScript.join(', ')}`)
-const externalLink =
-  html.match(/<link[^>]+href=["'](?!data:)[^"']+\.(css|js|woff2?|png|svg)["']/g) || []
-if (externalLink.length) fail(`found external <link href>: ${externalLink.join(', ')}`)
+for (const name of present) {
+  checkFile(name)
+}
 
 if (failed) {
   console.error('\ncheck:singlefile FAILED')
   process.exit(1)
 }
-console.log(`check:singlefile OK — dist/pedift.html, ${sizeMB.toFixed(2)} MB, no external refs`)

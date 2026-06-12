@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/postbuild.mjs",
+    "build": "node scripts/prebuild-ocr.mjs && tsc --noEmit && vite build && node scripts/postbuild.mjs lean",
+    "build:ocr": "node scripts/prebuild-ocr.mjs && tsc --noEmit && PEDIFT_OCR=1 vite build && node scripts/postbuild.mjs ocr",
+    "build:all": "npm run build && npm run build:ocr",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
