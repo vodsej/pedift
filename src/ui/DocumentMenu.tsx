@@ -47,6 +47,10 @@ export function DocumentMenu({ onSelect }: { onSelect: (a: DocAction) => void })
   const items: Item[] = [
     { action: 'forms', label: t.documentMenu.fillForms, icon: <IconText size={17} /> },
     { action: 'flatten', label: t.documentMenu.flatten, icon: <IconLayers size={17} /> },
+    // OCR sits with the other document-content operations (OCR edition only). The
+    // `__OCR__ ? […] : []` spread is dead-code-eliminated from the lean build, so
+    // IconOcr is tree-shaken there.
+    ...(__OCR__ ? [{ action: 'ocr' as const, label: t.documentMenu.ocr, icon: <IconOcr size={17} /> }] : []),
     { action: 'crop', label: t.pagesPanel.crop, icon: <IconCrop size={17} /> },
     { action: 'watermark', label: t.tools.watermark, icon: <IconWatermark size={17} /> },
     { action: 'pagenumbers', label: t.tools.pageNumbers, icon: <IconHash size={17} /> },
@@ -54,7 +58,6 @@ export function DocumentMenu({ onSelect }: { onSelect: (a: DocAction) => void })
     { action: 'compress', label: t.documentMenu.compress, icon: <IconCompress size={17} /> },
     { action: 'protect', label: t.documentMenu.protect, icon: <IconLock size={17} /> },
   ]
-  if (__OCR__) items.push({ action: 'ocr', label: t.documentMenu.ocr, icon: <IconOcr size={17} /> })
 
   return (
     <div class="docmenu" ref={ref}>

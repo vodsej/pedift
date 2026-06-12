@@ -180,11 +180,14 @@ export class EditorDocument {
     this.update((s) => {
       const pages = deletePages(s.pages, ids)
       if (pages === s.pages) return s
-      // Drop overlays attached to removed pages.
+      // Drop overlays + OCR data attached to removed pages.
       const kept = new Set(pages.map((p) => p.id))
       const overlays: Record<string, OverlayObject[]> = {}
       for (const [pid, objs] of Object.entries(s.overlays)) if (kept.has(pid)) overlays[pid] = objs
-      return { ...s, pages, overlays }
+      const ocrData = s.ocrData
+        ? Object.fromEntries(Object.entries(s.ocrData).filter(([pid]) => kept.has(pid)))
+        : undefined
+      return { ...s, pages, overlays, ocrData }
     })
   }
   duplicate(ids: string[]): void {

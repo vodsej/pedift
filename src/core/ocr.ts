@@ -106,7 +106,9 @@ export async function applyOcrLayer(
     for (const word of data.words) {
       if (!word.text.trim()) continue
       const rect = ocrWordToPdfRect(word, data)
-      // Font size = displayed glyph height in points (rotation-independent)
+      // Font size = the word's displayed glyph height in points (its image-px
+      // height ÷ scale). Exact for rotation 0; on rotated pages the invisible box
+      // may be slightly misaligned, but the text stays searchable (it's invisible).
       const size = word.h / data.scale
       if (size <= 0) continue
       try {
