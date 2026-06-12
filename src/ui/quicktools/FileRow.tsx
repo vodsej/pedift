@@ -1,7 +1,7 @@
 import type { ComponentChildren } from 'preact'
 import { IconButton } from '../components/Button'
 import { IconTrash } from '../icons'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 
 export interface FileRowProps {
   index: number

@@ -8,6 +8,7 @@ import { ImagesToPdfWizard } from './quicktools/ImagesToPdfWizard'
 import { CompressWizard } from './quicktools/CompressWizard'
 import { ProtectWizard } from './quicktools/ProtectWizard'
 import { useTheme } from './theme'
+import { useLocale } from './useLocale'
 import { toast } from './toast'
 import { friendlyMessage, PdfError } from '../core/errors'
 import { EditorDocument } from '../core/document'
@@ -15,7 +16,7 @@ import { RenderRegistry } from '../render/registry'
 import { probeEncryptionSupport } from '../core/crypto'
 import { openFileAsSession } from './openFlow'
 import { isPdfFile } from '../io/fileio'
-import { t } from '../strings/en'
+import { t } from '../strings'
 
 const LARGE_FILE_BYTES = 100 * 1024 * 1024
 
@@ -32,6 +33,7 @@ interface Session {
 
 export function App() {
   const [theme, toggleTheme] = useTheme()
+  const [locale, setLocale] = useLocale()
   const [session, setSession] = useState<Session | null>(null)
   const [opening, setOpening] = useState(false)
   const [prompt, setPrompt] = useState<PasswordPrompt | null>(null)
@@ -112,6 +114,8 @@ export function App() {
           fileName={session.fileName}
           theme={theme}
           onToggleTheme={toggleTheme}
+          locale={locale}
+          onSetLocale={setLocale}
           onClose={closeSession}
           protectSupported={protectSupported}
         />
@@ -119,6 +123,8 @@ export function App() {
         <Landing
           theme={theme}
           onToggleTheme={toggleTheme}
+          locale={locale}
+          onSetLocale={setLocale}
           onOpenFile={openFile}
           opening={opening}
           onQuickTool={setQuickTool}

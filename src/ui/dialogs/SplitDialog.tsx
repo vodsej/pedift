@@ -8,7 +8,7 @@ import { IconScissors } from '../icons'
 import { downloadBytes, withSuffix } from '../../io/fileio'
 import { friendlyMessage } from '../../core/errors'
 import { toast } from '../toast'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 
 type Mode = 'ranges' | 'everyN'
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))

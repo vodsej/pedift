@@ -13,7 +13,7 @@ import {
   IconInsert,
   IconImage,
 } from './icons'
-import { t } from '../strings/en'
+import { t } from '../strings'
 
 interface Props {
   editor: EditorDocument

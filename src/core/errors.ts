@@ -1,4 +1,4 @@
-import { t } from '../strings/en'
+import { t } from '../strings'
 
 // Typed, classifiable errors so the UI can show friendly, specific messages
 // while never losing the user's loaded work.

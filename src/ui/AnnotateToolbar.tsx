@@ -20,7 +20,7 @@ import {
   IconStamp,
   IconCheck,
 } from './icons'
-import { t } from '../strings/en'
+import { t } from '../strings'
 import './styles/annotate.css'
 
 export interface AnnotateToolbarProps {

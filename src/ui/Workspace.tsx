@@ -4,6 +4,7 @@ import type { RenderRegistry } from '../render/registry'
 import { Button, IconButton } from './components/Button'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { ThemeToggle } from './ThemeToggle'
+import { LangToggle } from './LangToggle'
 import { PagesPanel } from './PagesPanel'
 import { PageStage } from './PageStage'
 import { AnnotateToolbar } from './AnnotateToolbar'
@@ -50,7 +51,7 @@ import {
 import { friendlyMessage } from '../core/errors'
 import { toast } from './toast'
 import type { Theme } from './theme'
-import { t } from '../strings/en'
+import { t, type Locale } from '../strings'
 
 interface Props {
   editor: EditorDocument
@@ -58,6 +59,8 @@ interface Props {
   fileName: string
   theme: Theme
   onToggleTheme: () => void
+  locale: Locale
+  onSetLocale: (locale: Locale) => void
   onClose: () => void
   protectSupported: boolean
 }
@@ -74,6 +77,8 @@ export function Workspace({
   fileName,
   theme,
   onToggleTheme,
+  locale,
+  onSetLocale,
   onClose,
   protectSupported,
 }: Props) {
@@ -280,6 +285,7 @@ export function Workspace({
             <IconShield size={14} /> {t.privacy.badge}
           </span>
           <DocumentMenu onSelect={onDocAction} />
+          <LangToggle locale={locale} onSelect={onSetLocale} />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
           <Button variant="primary" onClick={save} disabled={saving}>
             <IconSave size={18} /> {saving ? t.workspace.saving : t.workspace.save}

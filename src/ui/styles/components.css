@@ -95,6 +95,13 @@
   cursor: not-allowed;
 }
 
+/* Language toggle shows the active locale's two-letter code instead of an icon. */
+.langtoggle__code {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 /* ---------- Tooltip (CSS-only via data-tooltip) ---------- */
 [data-tooltip] {
   position: relative;

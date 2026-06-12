@@ -10,7 +10,7 @@ import { Spinner } from '../components/Spinner'
 import { IconCheck } from '../icons'
 import { toast } from '../toast'
 import { friendlyMessage } from '../../core/errors'
-import { t } from '../../strings/en'
+import { t } from '../../strings'
 import '../styles/docdialogs.css'
 
 export function FillFormsDialog({

@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'preact/hooks'
 import { Dialog } from './components/Dialog'
 import { Button } from './components/Button'
 import { IconLock } from './icons'
-import { t } from '../strings/en'
+import { t } from '../strings'
 
 interface Props {
   wrong: boolean
