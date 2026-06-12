@@ -16,7 +16,8 @@ import { buildPdf, buildSubset, buildSplit, type BuildContext } from './save'
 import { createBakeAssets, bakeObjects, type BakeAssets } from './bake'
 import { applyPageNumbers } from './pageNumbers'
 import { applyWatermark } from './watermark'
-import type { PageNumbersConfig, WatermarkConfig, ProtectConfig } from './types'
+import { applyOcrLayer } from './ocr'
+import type { OcrPageData, PageNumbersConfig, WatermarkConfig, ProtectConfig } from './types'
 
 export interface ImageAsset {
   bytes: Uint8Array
@@ -56,6 +57,8 @@ export class EditorDocument {
   private history: DocState[]
   private pointer = 0
   private listeners = new Set<() => void>()
+
+  private ocrFontBytes: Uint8Array | null = null
 
   private constructor(fileName: string, initial: DocState, original: SourceRef) {
     this.fileName = fileName
@@ -217,6 +220,11 @@ export class EditorDocument {
     this.update((s) => ({ ...s, protect: cfg }))
   }
 
+  setOcrData(data: Record<string, OcrPageData>, fontBytes: Uint8Array | null): void {
+    this.ocrFontBytes = fontBytes
+    this.update((s) => ({ ...s, ocrData: { ...(s.ocrData ?? {}), ...data } }))
+  }
+
   /**
    * Replace the document's base bytes (e.g. after filling/flattening a form),
    * resetting pages/overlays to the new document. Pushed as an undoable snapshot.
@@ -276,10 +284,12 @@ export class EditorDocument {
       },
     }
   }
-  /** A finalize hook that draws watermark + page numbers after assembly. */
+  /** A finalize hook that draws OCR layer, watermark, and page numbers after assembly. */
   private finalizeHook(): Pick<BuildContext, 'finalize'> {
+    const ocrFontBytes = this.ocrFontBytes
     return {
       finalize: async (out, state) => {
+        if (state.ocrData) await applyOcrLayer(out, state, ocrFontBytes)
         if (state.watermark) await applyWatermark(out, state.watermark)
         if (state.pageNumbers) await applyPageNumbers(out, state.pageNumbers)
       },
