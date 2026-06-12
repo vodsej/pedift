@@ -17,8 +17,10 @@
   "license": "MIT",
   "dependencies": {
     "@cantoo/pdf-lib": "^2.7.1",
+    "@pdf-lib/fontkit": "^1.1.1",
     "pdfjs-dist": "^6.0.227",
-    "preact": "^10.29.2"
+    "preact": "^10.29.2",
+    "tesseract-wasm": "^0.11.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
