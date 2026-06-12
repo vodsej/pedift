@@ -16,7 +16,7 @@ function plural(n: number, one: string, few: string, many: string): string {
 
 export const cs: Strings = {
   appName: 'pedift',
-  tagline: 'Soukromá úprava PDF přímo ve vašem prohlížeči',
+  tagline: 'Úpravy PDF v soukromí vašeho prohlížeče',
 
   privacy: {
     badge: 'Soukromé a offline',
