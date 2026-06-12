@@ -21,7 +21,7 @@ pedift is the right tool and to be honest about where it isn't.
 
 | Product | Price | Distribution | Works offline | Files leave device? | Install required? | Open source | OCR | AI |
 |---|---|---|---|---|---|---|---|---|
-| **pedift** | **Free** | Single HTML file | **Yes (from `file://`)** | **Never** | **No** | **Yes (MIT)** | No | No |
+| **pedift** | **Free** | Single HTML file | **Yes (from `file://`)** | **Never** | **No** | **Yes (MIT)** | ~¹ | No |
 | Adobe Acrobat | $14.99–24.99/mo | Desktop app + cloud | Partial (cloud features online) | Often (Adobe cloud sync) | Yes | No | Yes | Yes (paid add-on) |
 | Smallpdf | Free / $15/mo | Cloud (browser) | No | Yes (server-side) | No | No | Yes | Yes |
 | iLovePDF | Free / from $9/mo | Cloud + apps | No | Yes (server-side) | No (web) | No | Yes | Yes |
@@ -52,7 +52,7 @@ means glyph-level editing of the original text already in the PDF.
 | Password protect / unlock | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Signature | ~ (visual only) | ✓ (cryptographic) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Images → PDF / export as image | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| OCR (scanned → text) | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| OCR (scanned → text) | ~¹ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Batch / automation API | ✗ | ✓ | ~ | ✓ | ~ | ~ | ✗ | ✓ |
 | Cloud sync / collaboration | ✗ | ✓ | ✓ | ✓ | ~ | ✗ | ~ | ~ |
 | Undo / redo | ✓ (200 steps) | ✓ | ~ | ✗ | ✓ | ~ | ✓ | ✓ (v2) |
@@ -60,6 +60,10 @@ means glyph-level editing of the original text already in the PDF.
 > Competitor cells reflect typical capabilities reported in June 2026; some
 > features (e.g. Smallpdf text editing) are gated behind paid tiers. See the
 > per-product profiles and sources below.
+
+> ¹ OCR is available in the **separate OCR edition** (`pedift-ocr.html`, ~9 MB)
+> which keeps the same offline/single-file guarantees. The default lean edition
+> (~2.4 MB) does not include OCR. Supported languages: English and Czech.
 
 ---
 
@@ -161,8 +165,12 @@ just opening one file. Sources: [Stirling PDF](https://stirling.com/),
 
 ## Where pedift falls short
 
-- **No OCR.** It can't turn scanned/image PDFs into searchable, editable text.
-  Acrobat, PDF24, Sejda, Stirling, Smallpdf, iLovePDF, and PDFgear all do.
+- **OCR only in the separate OCR edition.** The default lean build (~2.4 MB)
+  has no OCR. The **OCR edition** (`pedift-ocr.html`, ~9 MB) adds an invisible
+  text layer to scanned pages so text becomes selectable/searchable — fully
+  offline and single-file, like the lean build. Supported languages: English
+  and Czech. Acrobat, PDF24, Sejda, Stirling, Smallpdf, iLovePDF, and PDFgear
+  all include OCR in their standard builds without a separate download.
 - **No glyph-level editing of existing text.** pedift works by covering original
   text and retyping over it (whiteout + new text box), not by editing the
   document's actual text runs. Acrobat, Sejda, and PDFgear edit real text.
@@ -185,8 +193,9 @@ just opening one file. Sources: [Stirling PDF](https://stirling.com/),
   **pedift**. Nothing else is this provably offline with zero setup.
 - **Quick, occasional edit and you don't mind uploading** → **iLovePDF** or
   **Smallpdf** (free tiers, nothing to install).
-- **Scanned documents that need OCR** → **PDF24** (free, Windows) or **Adobe
-  Acrobat** (paid, any platform).
+- **Scanned documents that need OCR, offline** → **pedift OCR edition**
+  (`pedift-ocr.html`) — free, single-file, runs offline. For more languages or
+  editable-text OCR: **PDF24** (free, Windows) or **Adobe Acrobat** (paid).
 - **Heavy, glyph-level text editing of existing PDFs** → **Adobe Acrobat**,
   **Sejda**, or **PDFgear**.
 - **Free + private + lots of tools, and you're on Windows** → **PDF24 Creator**.
