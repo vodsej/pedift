@@ -149,6 +149,40 @@
 .topbar__right [data-tooltip]:focus-visible::after {
   transform: translateX(0) translateY(0);
 }
+/* Pages-panel action bar sits directly above the thumbnail list, so the default
+   downward tooltip collides with the page thumbnails. Open these upward instead. */
+.pagespanel__actions [data-tooltip]::after {
+  top: auto;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(4px);
+}
+.pagespanel__actions [data-tooltip]:hover::after,
+.pagespanel__actions [data-tooltip]:focus-visible::after {
+  transform: translateX(-50%) translateY(0);
+}
+/* The leftmost action button hugs the panel's left edge, so its centered tooltip
+   would overflow past the viewport (clipped by #app's overflow-x). Anchor it to the
+   button's left edge so it opens rightward and stays on-screen. */
+.pagespanel__actionbtns [data-tooltip]:first-child::after {
+  left: 0;
+  transform: translateX(0) translateY(4px);
+}
+.pagespanel__actionbtns [data-tooltip]:first-child:hover::after,
+.pagespanel__actionbtns [data-tooltip]:first-child:focus-visible::after {
+  transform: translateX(0) translateY(0);
+}
+/* The two rightmost action buttons sit near the panel's right edge, so their centered
+   tooltips would overflow into the document area. Anchor them to the button's right edge
+   so they open leftward and stay within the sidebar. */
+.pagespanel__actionbtns [data-tooltip]:nth-last-child(-n + 2)::after {
+  left: auto;
+  right: 0;
+  transform: translateX(0) translateY(4px);
+}
+.pagespanel__actionbtns [data-tooltip]:nth-last-child(-n + 2):hover::after,
+.pagespanel__actionbtns [data-tooltip]:nth-last-child(-n + 2):focus-visible::after {
+  transform: translateX(0) translateY(0);
+}
 /* The privacy line is a full sentence, not a short label: let it wrap to a tidy
    block within max-width (nowrap makes the 240px cap above a no-op for it). */
 .privacy-badge[data-tooltip]::after {
