@@ -41,7 +41,7 @@ ui → overlay → render → core        (everything may import core)
 
 ### State model & save pipeline
 
-`DocState` (`src/core/types.ts`) is the entire serializable editor state: ordered `PageDescriptor[]` (each points at immutable source bytes via `sourceId`/`srcIndex`), per-page `OverlayObject[]`, plus metadata/watermark/pageNumbers/protect config. Undo/redo is an array of `DocState` snapshots in `EditorDocument` (`src/core/document.ts`) — snapshots are cheap because they hold no PDF bytes.
+`DocState` (`src/core/types.ts`) is the entire serializable editor state: ordered `PageDescriptor[]` (each points at immutable source bytes via `sourceId`/`srcIndex`), per-page `OverlayObject[]`, plus metadata/watermark/pageNumbers/protect config and optional per-page `ocrData` (recognized words, used both for the in-app selectable-text overlay and the invisible-text bake). Undo/redo is an array of `DocState` snapshots in `EditorDocument` (`src/core/document.ts`) — snapshots are cheap because they hold no PDF bytes.
 
 Saving **rebuilds from fresh** (`src/core/save.ts`): a new `PDFDocument.create()`, `copyPages` from each source, then per-page rotation/crop/overlay-bake (`src/core/bake.ts`), then watermark/page-numbers, then optional encryption. **The loaded original bytes are never mutated** — this is the project's core guarantee; don't write code that mutates a source `PDFDocument`.
 
@@ -56,6 +56,7 @@ Saving **rebuilds from fresh** (`src/core/save.ts`): a new `PDFDocument.create()
 - The pdf.js worker is inlined as a `data:` URL built from `?raw` import (`src/render/pdfjs.ts`) because `blob:` workers fail on `file://`. Don't "simplify" this to a standard `?worker` import or the offline build breaks.
 - Password protection is gated by a runtime capability probe (`probeEncryptionSupport()` in `src/core/crypto.ts`, run at startup); the feature is disabled if the probe fails.
 - Page/overlay ids (`src/core/ids.ts`) are deterministic session-local counters — never persist them.
+- **Select-mode text layer:** in Select mode `OverlayLayer`'s root is `pointer-events:none`, so empty-area drags fall through to `SelectableTextLayer` (`src/ui/SelectableTextLayer.tsx`) below it — an always-on pdf.js text layer (`buildSelectableTextLayer` in `src/render/textLayer.ts`, at CSS-px scale, *not* ×dpr) plus invisible OCR word spans from `state.ocrData`, giving native text selection/copy. Annotation objects/handles re-enable `pointer-events` and `stopPropagation`, so clicks on them still reach the overlay; the deselect-on-empty-click handler therefore lives on the text layer, not the (unreachable) overlay root. Don't restore `pointer-events` on the overlay root in select mode.
 
 ### Strings
 
@@ -79,7 +80,7 @@ A new layer that sits above `src/render/` (may use DOM, tesseract-wasm, and the 
 - **`assets.ts`** / **`assets.stub.ts`** — gzip+base64 inlined vendor binaries (tesseract-wasm WASM/JS, trained data). Decoded at runtime via `DecompressionStream`. The stub resolves the `@ocr/assets` alias in the lean build and throws if called.
 - **`engine.ts`** — runs tesseract-wasm on the main thread (page canvas → `OcrPageData`: word bounding boxes + text).
 
-The DOM-free invisible-text bake lives in **`src/core/ocr.ts`** (`applyOcrLayer`), called from the save pipeline's `finalize` hook (before watermark/page-numbers). fontkit is **injected** into it via `editor.setOcrData(...)` so it stays out of the lean bundle. Coordinates follow the same unrotated PDF-point convention as `src/overlay/geometry.ts` (`viewToPdf`/`pdfToView`).
+The DOM-free invisible-text bake lives in **`src/core/ocr.ts`** (`applyOcrLayer`), called from the save pipeline's `finalize` hook (before watermark/page-numbers). fontkit is **injected** into it via `editor.setOcrData(...)` so it stays out of the lean bundle; that same call also stores the recognized words in `DocState.ocrData`, so the always-on `SelectableTextLayer` can render OCR text as selectable spans without saving. Coordinates follow the same unrotated PDF-point convention as `src/overlay/geometry.ts` (`viewToPdf`/`pdfToView`).
 
 ### Single-file build rules
 

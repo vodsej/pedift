@@ -7,9 +7,10 @@ offline — your files never leave your device.
 ## Why
 
 Most "free PDF editors" upload your documents to a server. pedift doesn't. The
-whole application ships as a single self-contained `pedift.html` (~2.3 MB) that
-works from `file://` with networking disabled. All processing happens locally in
-your browser.
+whole application ships as a single self-contained `pedift.html` (~2.4 MB) that
+works from `file://` with networking disabled. A second edition,
+`pedift-ocr.html` (~9 MB), adds fully-offline text recognition (OCR) with the
+same single-file guarantees. All processing happens locally in your browser.
 
 ## Features
 
@@ -39,16 +40,25 @@ your browser.
 - Fill forms (text/checkbox/dropdown), flatten, metadata, watermark, page numbers,
   protect/unprotect, compress
 
-Plus: warm light + dark themes, tooltips, keyboard shortcuts (undo/redo/save/zoom),
-drag-and-drop, touch support, and a strict "the loaded original is never mutated"
-guarantee — every save produces a new download.
+**OCR edition** (`pedift-ocr.html`, separate ~9 MB build)
+
+- Recognize text on scanned / image pages (English & Czech) and add an invisible
+  text layer, so the PDF becomes selectable and searchable — still fully offline,
+  still one file, nothing uploaded
+
+Plus: select & copy text right in the viewer (native PDF text, plus OCR results in
+the OCR edition), warm light + dark themes, tooltips, keyboard shortcuts
+(undo/redo/save/zoom), drag-and-drop, touch support, and a strict "the loaded
+original is never mutated" guarantee — every save produces a new download.
 
 ## Develop
 
 ```bash
 npm install
 npm run dev          # Vite dev server
-npm run build        # → dist/pedift.html (single self-contained file)
+npm run build        # → dist/pedift.html (lean single self-contained file)
+npm run build:ocr    # → dist/pedift-ocr.html (OCR edition, ~9 MB)
+npm run build:all    # both editions
 npm test             # unit tests (vitest, Node) against fixture PDFs
 npm run test:e2e     # Playwright smoke tests against the BUILT single file
 npm run check:singlefile   # asserts one .html, no external network references
@@ -73,9 +83,12 @@ Four layers with strict boundaries (see `docs/superpowers/`):
   here (selectable/movable/resizable) and are baked into page content on save.
 - **`src/ui/`** — Preact components: landing, workspace, toolbars, dialogs, toasts,
   themes. All user-facing strings are centralized in `src/strings/en.ts`.
+- **`src/ocr/`** *(OCR edition only)* — tesseract-wasm text recognition; results
+  bake into an invisible text layer on save. Excluded from the lean build via a
+  `__OCR__` compile-time flag, so it never weighs down `pedift.html`.
 
 **Tech:** Vite + TypeScript + Preact + `vite-plugin-singlefile`, pdf.js, @cantoo/pdf-lib,
-vitest, Playwright.
+vitest, Playwright; tesseract-wasm + fontkit in the OCR edition.
 
 ## Privacy & safety
 
@@ -87,10 +100,13 @@ vitest, Playwright.
 
 ## Out of scope
 
-True glyph-level text reflow, OCR, cryptographic signatures (the signature tool is
-visual only), any server features, and localization beyond English (strings are
-centralized for later).
+True glyph-level text reflow, cryptographic signatures (the signature tool is
+visual only), and any server features. OCR is available in the separate OCR
+edition (`pedift-ocr.html`); strings are centralized (English + Czech) so further
+locales can be added later.
 
 ## License
 
-MIT
+MIT (see `LICENSE`). The OCR edition bundles third-party components
+(tesseract-wasm, tessdata language models, DejaVu Sans) under their own permissive
+licenses — see `NOTICE`.
