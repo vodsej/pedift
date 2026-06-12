@@ -147,6 +147,7 @@ export const en = {
   documentMenu: {
     fillForms: 'Fill forms',
     flatten: 'Flatten',
+    ocr: 'OCR…',
     metadata: 'Metadata…',
     protect: 'Protect / Unprotect…',
     compress: 'Compress…',
@@ -309,6 +310,23 @@ export const en = {
     replaceText: {
       note: 'Replace text covers the old text and lets you retype it. The font may look different from the original.',
       gotIt: "Got it",
+    },
+    ocr: {
+      title: 'OCR — Recognize text',
+      hint: 'Adds an invisible text layer to scanned pages so you can select and copy text.',
+      language: 'Language',
+      english: 'English',
+      czech: 'Czech',
+      scope: 'Pages',
+      scopeAll: 'All pages',
+      scopeScanned: 'Scanned pages only ({count})',
+      scopeRange: 'Page range',
+      rangeLabel: 'Pages (e.g. 1-3, 5)',
+      run: 'Run OCR',
+      detecting: 'Detecting scanned pages…',
+      progress: 'Recognizing page {current} of {total}…',
+      done: 'OCR applied to {count} page(s)',
+      noPages: 'No pages selected.',
     },
   },
 

@@ -161,6 +161,7 @@ export const cs: Strings = {
   documentMenu: {
     fillForms: 'Vyplnit formuláře',
     flatten: 'Sloučit vrstvy',
+    ocr: 'OCR (rozpoznat text)…',
     metadata: 'Metadata…',
     protect: 'Zabezpečit / Odebrat heslo…',
     compress: 'Komprimovat…',
@@ -323,6 +324,23 @@ export const cs: Strings = {
     replaceText: {
       note: 'Nahrazení textu zakryje původní text a umožní vám ho přepsat. Písmo může vypadat jinak než originál.',
       gotIt: 'Rozumím',
+    },
+    ocr: {
+      title: 'OCR — Rozpoznání textu',
+      hint: 'Přidá neviditelnou textovou vrstvu do naskenovaných stránek, abyste mohli text vybírat a kopírovat.',
+      language: 'Jazyk',
+      english: 'Angličtina',
+      czech: 'Čeština',
+      scope: 'Stránky',
+      scopeAll: 'Všechny stránky',
+      scopeScanned: 'Pouze naskenované ({count})',
+      scopeRange: 'Rozsah stránek',
+      rangeLabel: 'Stránky (např. 1-3, 5)',
+      run: 'Spustit OCR',
+      detecting: 'Hledám naskenované stránky…',
+      progress: 'Rozpoznávám stránku {current} z {total}…',
+      done: 'OCR aplikováno na {count} stránku/stránek',
+      noPages: 'Nebyly vybrány žádné stránky.',
     },
   },
 

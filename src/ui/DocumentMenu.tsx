@@ -10,12 +10,14 @@ import {
   IconCompress,
   IconLayers,
   IconInfo,
+  IconOcr,
 } from './icons'
 import { t } from '../strings'
 
 export type DocAction =
   | 'forms'
   | 'flatten'
+  | 'ocr'
   | 'metadata'
   | 'crop'
   | 'watermark'
@@ -52,6 +54,7 @@ export function DocumentMenu({ onSelect }: { onSelect: (a: DocAction) => void })
     { action: 'compress', label: t.documentMenu.compress, icon: <IconCompress size={17} /> },
     { action: 'protect', label: t.documentMenu.protect, icon: <IconLock size={17} /> },
   ]
+  if (__OCR__) items.push({ action: 'ocr', label: t.documentMenu.ocr, icon: <IconOcr size={17} /> })
 
   return (
     <div class="docmenu" ref={ref}>
