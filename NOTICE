@@ -1,0 +1,28 @@
+pedift
+Copyright (c) Jakub Vodsedalek
+Licensed under the MIT License (see LICENSE).
+
+--------------------------------------------------------------------------------
+Third-party components bundled in the OCR edition
+--------------------------------------------------------------------------------
+
+Tesseract OCR engine / tesseract-wasm
+  The WebAssembly build of Tesseract OCR is distributed as part of the
+  tesseract-wasm package (https://github.com/robertknight/tesseract-wasm).
+  License: Apache License 2.0
+  The original Tesseract OCR engine is developed by Google and contributors
+  (https://github.com/tesseract-ocr/tesseract).
+  License: Apache License 2.0
+
+tessdata_fast language models (eng.traineddata, ces.traineddata)
+  Trained model data files for English and Czech are taken from the
+  tessdata_fast repository (https://github.com/tesseract-ocr/tessdata_fast).
+  License: Apache License 2.0
+
+DejaVu Sans font (DejaVuSans.ttf)
+  The DejaVu Sans font is derived from Bitstream Vera Sans, copyright
+  Bitstream Inc. Glyphs added beyond the Bitstream Vera set are in the
+  public domain. The full license terms are available at
+  https://dejavu-fonts.github.io/License.html.
+  License: Bitstream Vera / DejaVu permissive license (free, redistribution
+  permitted with attribution).

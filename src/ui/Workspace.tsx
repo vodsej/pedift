@@ -101,6 +101,14 @@ export function Workspace({
   const [cropMode, setCropMode] = useState(false)
   const [docDialog, setDocDialog] = useState<DocAction | null>(null)
   const [pageAspect, setPageAspect] = useState(1.414)
+  const [OcrDialogComp, setOcrDialogComp] =
+    useState<null | typeof import('./dialogs/OcrDialog')['OcrDialog']>(null)
+
+  useEffect(() => {
+    if (__OCR__ && docDialog === 'ocr' && !OcrDialogComp) {
+      void import('./dialogs/OcrDialog').then((m) => setOcrDialogComp(() => m.OcrDialog))
+    }
+  }, [docDialog, OcrDialogComp])
 
   const onDocAction = (a: DocAction) => {
     if (a === 'crop') {
@@ -432,6 +440,9 @@ export function Workspace({
         <ProtectDialog editor={editor} supported={protectSupported} onClose={() => setDocDialog(null)} />
       )}
       {docDialog === 'compress' && <CompressDialog editor={editor} onClose={() => setDocDialog(null)} />}
+      {__OCR__ && docDialog === 'ocr' && OcrDialogComp && (
+        <OcrDialogComp editor={editor} registry={registry} onClose={() => setDocDialog(null)} />
+      )}
     </div>
   )
 }

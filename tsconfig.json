@@ -25,7 +25,9 @@
     "types": ["vite/client", "node"],
     "paths": {
       "react": ["./node_modules/preact/compat/"],
-      "react-dom": ["./node_modules/preact/compat/"]
+      "react-dom": ["./node_modules/preact/compat/"],
+      "@ocr/assets": ["./src/ocr/assets.ts"],
+      "tesseract-wasm": ["./node_modules/tesseract-wasm/dist/index.d.ts"]
     }
   },
   "include": ["src", "vite.config.ts", "scripts", "tests"],

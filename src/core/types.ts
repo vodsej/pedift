@@ -166,6 +166,22 @@ export interface ProtectConfig {
   ownerPassword?: string
 }
 
+export interface OcrWord {
+  text: string
+  x: number // image px, top-left origin (over the rendered/rotated raster)
+  y: number
+  w: number
+  h: number
+}
+
+export interface OcrPageData {
+  words: OcrWord[]
+  scale: number // render scale S: raster is the page rendered at S px per point of the ROTATED page
+  rotation: Rotation // the page /Rotate applied when the raster was produced
+  pageWidthPts: number // UNROTATED page width in points
+  pageHeightPts: number // UNROTATED page height in points
+}
+
 export interface DocState {
   pages: PageDescriptor[]
   overlays: Record<string, OverlayObject[]>
@@ -175,6 +191,7 @@ export interface DocState {
   formValues: Record<string, string | boolean>
   flatten: boolean
   protect: ProtectConfig | null
+  ocrData?: Record<string, OcrPageData> // keyed by pageId
 }
 
 export function emptyMetadata(): Metadata {

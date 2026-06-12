@@ -11,12 +11,18 @@ pedift is a privacy-first PDF editor that ships as **one self-contained HTML fil
 ```bash
 npm run dev                # Vite dev server
 npm run build              # tsc --noEmit + vite build + postbuild → dist/pedift.html (exactly one file)
+npm run build:ocr          # builds dist/pedift-ocr.html with OCR inlined (~9 MB)
+npm run build:all          # both editions (lean + OCR)
 npm test                   # unit tests (vitest, Node environment, no DOM)
 npx vitest run tests/unit/core/save.test.ts   # single test file
 npm run test:e2e           # Playwright against the BUILT file — run `npm run build` first
 npm run check:singlefile   # asserts dist/ is one .html with no external network refs
 npm run fixtures           # regenerate tests/fixtures/*.pdf (outputs are committed)
 ```
+
+> **Note:** both `npm run build` and `npm run build:ocr` automatically run
+> `scripts/prebuild-ocr.mjs` first. That script generates gitignored
+> `src/ocr/vendor/*.gen.ts` from committed raw binaries so `tsc` resolves them.
 
 Unit tests run in Node against fixture PDFs and cover `src/core/` only. E2E serves `dist/` over HTTP (download capture needs HTTP), so it always tests the built artifact, not the dev server.
 
@@ -56,6 +62,24 @@ Saving **rebuilds from fresh** (`src/core/save.ts`): a new `PDFDocument.create()
 All user-facing text goes through `t` imported from `src/strings` (the index module). The convention is not lint-enforced — follow it anyway; don't hardcode UI strings in components.
 
 Localization lives in `src/strings/`: `en.ts` is the canonical table whose shape (`Strings`) every locale must satisfy (`en` is intentionally *not* `as const` so locales can supply their own text); `cs.ts` is the Czech table; `index.ts` holds the active locale and exports `t` as a **live ES binding** that `setLocale` reassigns. Components read `t.x.y` at render time, so a single forced re-render at the app root (`useLocale` in `App.tsx`) cascades a locale change through the whole tree. To add a locale: add `<code>.ts` satisfying `Strings`, register it in `index.ts` (`tables`, `LOCALES`, `Locale`, detection), and extend `LangToggle`. **Gotcha:** never capture `t.*` into a module-level `const` — it freezes the value at the boot locale; build such lists inside the component instead (see `quickTools()` in `Landing.tsx`).
+
+### Two-edition build
+
+pedift ships two artifacts from the same source tree:
+
+- **`dist/pedift.html`** (~2.4 MB) — lean, no OCR.
+- **`dist/pedift-ocr.html`** (~9 MB) — full OCR (tesseract-wasm + fontkit inlined).
+
+The split is controlled by a `__OCR__` compile-time `define` flag in `vite.config.ts`. When `__OCR__` is false, the `@ocr/assets` Vite alias resolves to `src/ocr/assets.stub.ts` (a throwing stub), so tesseract and fontkit are never pulled into the lean graph. The OCR dialog in `Workspace.tsx` is behind a `__OCR__`-gated dynamic import for the same reason. `check:singlefile` validates both artifacts with per-file size ceilings (lean ≤ 6 MB, OCR ≤ 14 MB).
+
+### `src/ocr/` layer
+
+A new layer that sits above `src/render/` (may use DOM, tesseract-wasm, and the render registry):
+
+- **`assets.ts`** / **`assets.stub.ts`** — gzip+base64 inlined vendor binaries (tesseract-wasm WASM/JS, trained data). Decoded at runtime via `DecompressionStream`. The stub resolves the `@ocr/assets` alias in the lean build and throws if called.
+- **`engine.ts`** — runs tesseract-wasm on the main thread (page canvas → `OcrPageData`: word bounding boxes + text).
+
+The DOM-free invisible-text bake lives in **`src/core/ocr.ts`** (`applyOcrLayer`), called from the save pipeline's `finalize` hook (before watermark/page-numbers). fontkit is **injected** into it via `editor.setOcrData(...)` so it stays out of the lean bundle. Coordinates follow the same unrotated PDF-point convention as `src/overlay/geometry.ts` (`viewToPdf`/`pdfToView`).
 
 ### Single-file build rules
 

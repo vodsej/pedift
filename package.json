@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node scripts/postbuild.mjs",
+    "build": "node scripts/prebuild-ocr.mjs && tsc --noEmit && vite build && node scripts/postbuild.mjs lean",
+    "build:ocr": "node scripts/prebuild-ocr.mjs && tsc --noEmit && PEDIFT_OCR=1 vite build && node scripts/postbuild.mjs ocr",
+    "build:all": "npm run build && npm run build:ocr",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -17,8 +19,10 @@
   "license": "MIT",
   "dependencies": {
     "@cantoo/pdf-lib": "^2.7.1",
+    "@pdf-lib/fontkit": "^1.1.1",
     "pdfjs-dist": "^6.0.227",
-    "preact": "^10.29.2"
+    "preact": "^10.29.2",
+    "tesseract-wasm": "^0.11.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
