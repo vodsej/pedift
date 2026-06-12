@@ -37,6 +37,10 @@ export function newWhiteout(pageId: string, rect: CropBox, opts: ToolOptions, z:
   return { id: nextId('ov'), pageId, z, type: 'whiteout', ...rect, color: opts.whiteoutColor }
 }
 
+export function newRedaction(pageId: string, rect: CropBox, opts: ToolOptions, z: number): OverlayObject {
+  return { id: nextId('ov'), pageId, z, type: 'redaction', ...rect, color: opts.redactionColor }
+}
+
 export function newShape(
   pageId: string,
   shape: ShapeObj['shape'],

@@ -18,6 +18,7 @@ import {
   nextZ,
   newText,
   newWhiteout,
+  newRedaction,
   newShape,
   newPen,
   newHighlight,
@@ -261,6 +262,7 @@ export function OverlayLayer({
       const rectPdf = rectViewToPdf(g, normRect(start, cur))
       if (tool === 'text') return newText(pageId, rectPdf, options, z)
       if (tool === 'whiteout') return newWhiteout(pageId, rectPdf, options, z)
+      if (tool === 'redaction') return newRedaction(pageId, rectPdf, options, z)
       if (tool === 'rect') return newShape(pageId, 'rect', rectPdf, options, z)
       if (tool === 'ellipse') return newShape(pageId, 'ellipse', rectPdf, options, z)
     }
@@ -407,6 +409,16 @@ function ObjectView(p: ObjectViewProps) {
     }
   } else if (obj.type === 'whiteout') {
     body = <div {...common} class={`overlay-obj ${selected ? 'is-selected' : ''}`} style={{ ...common.style, background: obj.color }} />
+  } else if (obj.type === 'redaction') {
+    // Editor-only red outline marks a pending redaction (keeps a white bar
+    // visible and a black bar distinct from a black shape). Never saved.
+    body = (
+      <div
+        {...common}
+        class={`overlay-obj ${selected ? 'is-selected' : ''}`}
+        style={{ ...common.style, background: obj.color, outline: '1.5px solid #e11', outlineOffset: '-1.5px' }}
+      />
+    )
   } else if (obj.type === 'highlight') {
     body = (
       <div {...common} class={`overlay-obj overlay-highlight ${selected ? 'is-selected' : ''}`}>

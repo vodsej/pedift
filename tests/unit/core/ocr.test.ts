@@ -276,6 +276,50 @@ describe('Czech Unicode text', () => {
   }, 30_000)
 })
 
+// ─── 5b. Redaction suppresses the OCR layer on flattened pages ───────────────
+
+// Minimal valid 1x1 baseline JPEG; embedJpg only needs parseable bytes.
+const JPEG_1x1 = new Uint8Array(
+  Buffer.from(
+    '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AfwD/2Q==',
+    'base64',
+  ),
+)
+
+describe('redaction + OCR layer', () => {
+  it('drops the OCR text on redacted pages but keeps it elsewhere', async () => {
+    const bytes = fixture('plain-3page.pdf')
+    const dejaVuBytes = new Uint8Array(readFileSync(DEJAVU_PATH))
+    const doc = await EditorDocument.open(bytes, 'plain-3page.pdf')
+    const page0 = doc.pages[0].id
+    const page1 = doc.pages[1].id
+
+    const { PDFDocument } = await import('@cantoo/pdf-lib')
+    const srcDoc = await PDFDocument.load(bytes)
+    const { width: pageWidthPts, height: pageHeightPts } = srcDoc.getPages()[0].getSize()
+
+    doc.setOcrData(
+      {
+        [page0]: { words: [{ text: 'SECRETSSN', x: 100, y: 100, w: 300, h: 40 }], scale: 3, rotation: 0, pageWidthPts, pageHeightPts },
+        [page1]: { words: [{ text: 'KEEPVISIBLE', x: 100, y: 100, w: 300, h: 40 }], scale: 3, rotation: 0, pageWidthPts, pageHeightPts },
+      },
+      dejaVuBytes,
+      fontkit,
+    )
+
+    // Redact page 0 and wire a stub rasterizer so the page is flattened.
+    doc.setOverlays(page0, [
+      { id: 'r1', pageId: page0, z: 1, type: 'redaction', x: 0, y: 0, width: 300, height: 300, color: '#000000' },
+    ])
+    doc.setRedactionRasterizer(async () => ({ bytes: JPEG_1x1, widthPts: pageWidthPts, heightPts: pageHeightPts }))
+
+    const saved = await doc.build()
+    const text = await extractPdfText(saved)
+    expect(text).not.toContain('SECRETSSN') // redacted page: OCR layer suppressed
+    expect(text).toContain('KEEPVISIBLE') // untouched page: OCR layer intact
+  }, 30_000)
+})
+
 // ─── 5. Empty / no-op ─────────────────────────────────────────────────────────
 
 describe('empty ocrData', () => {

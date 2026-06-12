@@ -12,7 +12,7 @@ import {
   rotatePages,
   setCrop,
 } from './pages'
-import { buildPdf, buildSubset, buildSplit, type BuildContext } from './save'
+import { buildPdf, buildSubset, buildSplit, type BuildContext, type RedactRect } from './save'
 import { createBakeAssets, bakeObjects, type BakeAssets } from './bake'
 import { applyPageNumbers } from './pageNumbers'
 import { applyWatermark } from './watermark'
@@ -60,6 +60,7 @@ export class EditorDocument {
 
   private ocrFontBytes: Uint8Array | null = null
   private ocrFontkit: Fontkit | null = null
+  private redactionRasterizer: BuildContext['rasterizeRedacted'] = undefined
 
   private constructor(fileName: string, initial: DocState, original: SourceRef) {
     this.fileName = fileName
@@ -234,6 +235,12 @@ export class EditorDocument {
     this.update((s) => ({ ...s, ocrData: { ...(s.ocrData ?? {}), ...data } }))
   }
 
+  /** Inject the page rasterizer used for true redaction (needs the render layer,
+   *  so it is supplied by the UI). Wired once at startup. */
+  setRedactionRasterizer(fn: BuildContext['rasterizeRedacted']): void {
+    this.redactionRasterizer = fn
+  }
+
   /**
    * Replace the document's base bytes (e.g. after filling/flattening a form),
    * resetting pages/overlays to the new document. Pushed as an undoable snapshot.
@@ -293,20 +300,46 @@ export class EditorDocument {
       },
     }
   }
+  /** Collect redaction bars per page from the overlay objects. */
+  private collectRedactions(): Map<string, RedactRect[]> {
+    const map = new Map<string, RedactRect[]>()
+    for (const [pageId, objs] of Object.entries(this.state.overlays)) {
+      const bars: RedactRect[] = objs
+        .filter((o): o is Extract<OverlayObject, { type: 'redaction' }> => o.type === 'redaction')
+        .map((o) => ({ x: o.x, y: o.y, width: o.width, height: o.height, color: o.color }))
+      if (bars.length) map.set(pageId, bars)
+    }
+    return map
+  }
   /** A finalize hook that draws OCR layer, watermark, and page numbers after assembly. */
-  private finalizeHook(): Pick<BuildContext, 'finalize'> {
+  private finalizeHook(skipPageIds: Set<string>): Pick<BuildContext, 'finalize'> {
     const ocrFontBytes = this.ocrFontBytes
     const ocrFontkit = this.ocrFontkit
     return {
       finalize: async (out, state) => {
-        if (state.ocrData) await applyOcrLayer(out, state, ocrFontBytes, ocrFontkit)
+        // Skip the invisible OCR text on redacted (flattened) pages — otherwise
+        // the persisted ocrData would re-introduce the redacted words as
+        // selectable text on top of the raster.
+        if (state.ocrData) await applyOcrLayer(out, state, ocrFontBytes, ocrFontkit, skipPageIds)
         if (state.watermark) await applyWatermark(out, state.watermark)
         if (state.pageNumbers) await applyPageNumbers(out, state.pageNumbers)
       },
     }
   }
   buildContext(extra?: Partial<BuildContext>): BuildContext {
-    return { sources: this.sources, ...this.bakeHook(), ...this.finalizeHook(), ...extra }
+    const rasterizeRedacted = extra?.rasterizeRedacted ?? this.redactionRasterizer
+    const redactions = this.collectRedactions()
+    const redactedIds = rasterizeRedacted
+      ? new Set([...redactions].filter(([, r]) => r.length).map(([id]) => id))
+      : new Set<string>()
+    return {
+      sources: this.sources,
+      ...this.bakeHook(),
+      ...this.finalizeHook(redactedIds),
+      redactions,
+      rasterizeRedacted,
+      ...extra,
+    }
   }
   build(extra?: Partial<BuildContext>): Promise<Uint8Array> {
     return buildPdf(this.state, this.buildContext(extra))

@@ -58,6 +58,39 @@
   gap: var(--space-1);
 }
 
+/* Color swatch picker (e.g. redaction black/white) */
+.swatch-picker {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong, var(--border));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    box-shadow var(--transition),
+    transform var(--transition);
+}
+
+.swatch:hover {
+  transform: translateY(-1px);
+}
+
+.swatch.is-active,
+.swatch:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--accent);
+}
+
 /* ─── Tool Menus (shapes / stamp popover) ──────────────────────────────────── */
 
 .tool-menu-wrap {

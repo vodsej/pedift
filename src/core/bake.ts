@@ -86,6 +86,19 @@ async function bakeOne(page: PDFPage, obj: OverlayObject, assets: BakeAssets): P
         color: hexToRgb(obj.color || '#ffffff'),
       })
       break
+    case 'redaction':
+      // The covered content is removed by rebuilding the page as a flattened
+      // raster (see save.ts); this bar is the same color already painted into
+      // that raster (defense-in-depth) and the cosmetic fallback when no
+      // rasterizer is wired (e.g. headless builds).
+      page.drawRectangle({
+        x: obj.x,
+        y: obj.y,
+        width: obj.width,
+        height: obj.height,
+        color: hexToRgb(obj.color || '#000000'),
+      })
+      break
     case 'highlight':
       for (const r of obj.rects) {
         page.drawRectangle({

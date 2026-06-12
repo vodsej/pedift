@@ -86,6 +86,7 @@ export async function applyOcrLayer(
   state: DocState,
   fontBytes: Uint8Array | null,
   fontkit: Fontkit | null,
+  skipPageIds?: Set<string>,
 ): Promise<void> {
   const ocrData = state.ocrData
   if (!ocrData || Object.keys(ocrData).length === 0) return
@@ -101,6 +102,7 @@ export async function applyOcrLayer(
   const pages = out.getPages()
   for (let i = 0; i < pages.length; i++) {
     const pd = state.pages[i]
+    if (pd && skipPageIds?.has(pd.id)) continue // redacted page: flattened to a raster
     const data = pd ? ocrData[pd.id] : undefined
     if (!data) continue
     for (const word of data.words) {

@@ -9,6 +9,7 @@ import { PagesPanel } from './PagesPanel'
 import { PageStage } from './PageStage'
 import { AnnotateToolbar } from './AnnotateToolbar'
 import { OverlayLayer } from '../overlay/OverlayLayer'
+import { rasterizeRedactedPage } from '../render/redactRaster'
 import { CropOverlay } from '../overlay/CropOverlay'
 import { TextSelectLayer } from './TextSelectLayer'
 import { SelectableTextLayer } from './SelectableTextLayer'
@@ -111,6 +112,14 @@ export function Workspace({
       void import('./dialogs/OcrDialog').then((m) => setOcrDialogComp(() => m.OcrDialog))
     }
   }, [docDialog, OcrDialogComp])
+
+  // Wire the true-redaction rasterizer (needs the render layer, so it can't live
+  // in core). Every build path then flattens redacted pages automatically.
+  useEffect(() => {
+    editor.setRedactionRasterizer((descriptor, rects) =>
+      rasterizeRedactedPage(registry, descriptor, rects),
+    )
+  }, [editor, registry])
 
   const onDocAction = (a: DocAction) => {
     if (a === 'crop') {

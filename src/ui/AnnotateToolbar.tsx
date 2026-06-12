@@ -15,6 +15,7 @@ import {
   IconLine,
   IconArrow,
   IconWhiteout,
+  IconRedaction,
   IconImage,
   IconSignature,
   IconStamp,
@@ -103,6 +104,48 @@ function StampMenu({ onStamp, onClose }: { onStamp: (text: string) => void; onCl
           {item.label}
         </button>
       ))}
+    </div>
+  )
+}
+
+/** Readable check-mark ink for a given swatch background. */
+function inkFor(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return '#fff'
+  const n = parseInt(m[1], 16)
+  const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255
+  return lum > 0.6 ? '#111' : '#fff'
+}
+
+/** A row of color swatches; the selected one gets an accent ring + check mark. */
+function SwatchPicker({
+  value,
+  onChange,
+  options,
+}: {
+  value: string
+  onChange: (v: string) => void
+  options: Array<{ value: string; label: string }>
+}) {
+  return (
+    <div class="swatch-picker" role="radiogroup">
+      {options.map((o) => {
+        const active = value.toLowerCase() === o.value.toLowerCase()
+        return (
+          <button
+            key={o.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            aria-label={o.label}
+            class={`swatch ${active ? 'is-active' : ''}`}
+            style={{ background: o.value, color: inkFor(o.value) }}
+            onClick={() => onChange(o.value)}
+          >
+            {active && <IconCheck size={14} />}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -243,6 +286,25 @@ function ContextOptions({
             onChange={(v) => setOptions({ ...options, whiteoutColor: v })}
           />
         </Field>
+        <span style="font-size:0.75rem;color:var(--text-muted)">{t.tools.whiteoutNote}</span>
+      </div>
+    )
+  }
+
+  if (tool === 'redaction') {
+    return (
+      <div class="annotate-options">
+        <Field label={t.tools.color}>
+          <SwatchPicker
+            value={options.redactionColor}
+            onChange={(v) => setOptions({ ...options, redactionColor: v })}
+            options={[
+              { value: '#000000', label: t.tools.redactBlack },
+              { value: '#ffffff', label: t.tools.redactWhite },
+            ]}
+          />
+        </Field>
+        <span style="font-size:0.75rem;color:var(--text-muted)">{t.tools.redactNote}</span>
       </div>
     )
   }
@@ -332,6 +394,14 @@ export function AnnotateToolbar(props: AnnotateToolbarProps): JSX.Element {
         onClick={() => setTool('whiteout')}
       >
         <IconWhiteout />
+      </IconButton>
+
+      <IconButton
+        label={t.tools.redaction}
+        active={tool === 'redaction'}
+        onClick={() => setTool('redaction')}
+      >
+        <IconRedaction />
       </IconButton>
 
       <IconButton

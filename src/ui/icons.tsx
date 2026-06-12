@@ -249,6 +249,13 @@ export const IconWhiteout = (p: P) => (
     <rect x="3" y="7" width="18" height="10" rx="1" />
   </Svg>
 )
+export const IconRedaction = (p: P) => (
+  <Svg {...p}>
+    <line x1="4" y1="7" x2="20" y2="7" />
+    <rect x="4" y="10.25" width="16" height="3.5" rx="0.5" fill="currentColor" stroke="none" />
+    <line x1="4" y1="17.5" x2="13" y2="17.5" />
+  </Svg>
+)
 export const IconSignature = (p: P) => (
   <Svg {...p}>
     <path d="M3 17c3 0 3-9 6-9s2 6 4 6 2-3 4-3 1 3 4 3" />

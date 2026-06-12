@@ -31,7 +31,8 @@ same single-file guarantees. All processing happens locally in your browser.
 **Workspace — Annotate**
 
 - Text box, **Replace text** (cover + retype), highlight, pen, shapes
-  (rectangle/ellipse/line/arrow), whiteout, insert image, signature (draw or type),
+  (rectangle/ellipse/line/arrow), whiteout, **Redact** (truly removes the covered
+  content — black or white bar), insert image, signature (draw or type),
   stamps (✓ ✗ APPROVED DRAFT CONFIDENTIAL, date)
 - All overlay objects select / move / resize / delete / undo-redo until saved
 
@@ -94,6 +95,11 @@ vitest, Playwright; tesseract-wasm + fontkit in the OCR edition.
 
 - 100% client-side. No network calls, telemetry, or external fonts/CDNs (enforced
   by `check:singlefile` in the build).
+- **True redaction**, not just cover-up: a redacted page is rebuilt on save as a
+  flattened image with the bars baked in, so the underlying text/images are *gone*
+  from the saved file rather than merely hidden under a box. (That page becomes an
+  image and loses selectable text; other pages stay vector. Whiteout remains a
+  separate cosmetic cover.)
 - The original document is never modified in memory; "Discard changes" is always safe.
 - Password protection is verified at startup (a runtime capability probe); if a
   browser can't support it, the feature is honestly disabled rather than broken.

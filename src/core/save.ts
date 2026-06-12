@@ -2,12 +2,31 @@ import { PDFDocument, degrees, type PDFPage } from '@cantoo/pdf-lib'
 import type { DocState, PageDescriptor, SourceRef, Metadata } from './types'
 import { PdfError, classifyError } from './errors'
 
+/** A redaction bar in unrotated PDF points (bottom-left origin). */
+export interface RedactRect {
+  x: number
+  y: number
+  width: number
+  height: number
+  color: string
+}
+
 export interface BuildContext {
   sources: Map<string, SourceRef>
   /** Optional hook to bake overlay objects onto a page (added in Phase 3). */
   bakePage?: (out: PDFDocument, page: PDFPage, pageId: string) => Promise<void>
   /** Optional post-pass hooks (watermark, page numbers — Phase 4). */
   finalize?: (out: PDFDocument, state: DocState) => Promise<void>
+  /** Pages to truly redact: pageId -> bars (unrotated PDF points). Built from
+   *  overlay 'redaction' objects in document.ts. */
+  redactions?: Map<string, RedactRect[]>
+  /** Renders a page unrotated with the bars painted in, returning JPEG bytes +
+   *  unrotated size in points. Injected from the UI (needs the render layer);
+   *  when absent, redaction degrades to a cosmetic baked bar (no true removal). */
+  rasterizeRedacted?: (
+    descriptor: PageDescriptor,
+    rects: RedactRect[],
+  ) => Promise<{ bytes: Uint8Array; widthPts: number; heightPts: number }>
 }
 
 async function loadSource(
@@ -45,9 +64,21 @@ export async function assembleDocument(
   const out = await PDFDocument.create()
   const docCache = new Map<string, PDFDocument>()
 
-  // Per-source ordered index lists (following global descriptor order).
+  // Pages that carry redaction marks are rebuilt from a flattened raster, so
+  // their source content must never be copied into the output. Only honour this
+  // when a rasterizer is wired (otherwise the bars degrade to a baked cover).
+  const redactedIds = new Set<string>()
+  if (ctx.rasterizeRedacted && ctx.redactions) {
+    for (const [pageId, rects] of ctx.redactions) {
+      if (rects.length) redactedIds.add(pageId)
+    }
+  }
+
+  // Per-source ordered index lists (following global descriptor order),
+  // excluding redacted pages.
   const perSource = new Map<string, number[]>()
   for (const pd of descriptors) {
+    if (redactedIds.has(pd.id)) continue
     const arr = perSource.get(pd.sourceId)
     if (arr) arr.push(pd.srcIndex)
     else perSource.set(pd.sourceId, [pd.srcIndex])
@@ -62,6 +93,20 @@ export async function assembleDocument(
   }
 
   for (const pd of descriptors) {
+    if (redactedIds.has(pd.id)) {
+      // Rebuild the page as a flattened image with the bars baked in. The image
+      // is the page rendered UNROTATED, so /Rotate and crop are re-applied here
+      // exactly as for a copied page and the rest of the flow is unchanged.
+      const rects = ctx.redactions!.get(pd.id) ?? []
+      const { bytes, widthPts, heightPts } = await ctx.rasterizeRedacted!(pd, rects)
+      const img = await out.embedJpg(bytes)
+      const page = out.addPage([widthPts, heightPts])
+      page.drawImage(img, { x: 0, y: 0, width: widthPts, height: heightPts })
+      page.setRotation(degrees(pd.rotation))
+      if (pd.crop) page.setCropBox(pd.crop.x, pd.crop.y, pd.crop.width, pd.crop.height)
+      if (ctx.bakePage) await ctx.bakePage(out, page, pd.id)
+      continue
+    }
     const q = queues.get(pd.sourceId)
     if (!q) continue
     const page = q.pages[q.ptr++]

@@ -5,6 +5,7 @@ export type ToolId =
   | 'text'
   | 'replaceText'
   | 'whiteout'
+  | 'redaction'
   | 'rect'
   | 'ellipse'
   | 'line'
@@ -23,6 +24,7 @@ export interface ToolOptions {
   font: StandardFontName
   highlightColor: string
   whiteoutColor: string
+  redactionColor: string
 }
 
 export function defaultToolOptions(): ToolOptions {
@@ -34,11 +36,12 @@ export function defaultToolOptions(): ToolOptions {
     font: 'Helvetica',
     highlightColor: '#ffd23f',
     whiteoutColor: '#ffffff',
+    redactionColor: '#000000',
   }
 }
 
 /** Tools that draw by dragging a rectangle. */
-export const RECT_DRAW_TOOLS: ToolId[] = ['text', 'whiteout', 'rect', 'ellipse']
+export const RECT_DRAW_TOOLS: ToolId[] = ['text', 'whiteout', 'redaction', 'rect', 'ellipse']
 /** Tools that draw by dragging a line (start -> end). */
 export const LINE_DRAW_TOOLS: ToolId[] = ['line', 'arrow']
 

@@ -21,12 +21,13 @@ const PNG = new Uint8Array(
 beforeEach(() => resetIds())
 
 describe('bake overlays into the saved PDF', () => {
-  it('bakes text/shape/whiteout/highlight without error and reloads', async () => {
+  it('bakes text/shape/whiteout/redaction/highlight without error and reloads', async () => {
     const editor = await EditorDocument.open(fixture('plain-3page.pdf'), 'doc.pdf')
     const pageId = editor.pages[0].id
     const objs: OverlayObject[] = [
       { id: 'o1', pageId, z: 1, type: 'text', x: 50, y: 700, width: 200, height: 40, text: 'Hello\nWorld', fontSize: 16, font: 'Helvetica', color: '#ff0000', align: 'left' },
       { id: 'o2', pageId, z: 2, type: 'whiteout', x: 60, y: 600, width: 120, height: 20, color: '#ffffff' },
+      { id: 'o2b', pageId, z: 2, type: 'redaction', x: 60, y: 560, width: 120, height: 20, color: '#000000' },
       { id: 'o3', pageId, z: 3, type: 'shape', shape: 'rect', x: 200, y: 500, width: 120, height: 80, color: '#0000ff', strokeWidth: 2, fill: null },
       { id: 'o4', pageId, z: 4, type: 'shape', shape: 'arrow', x: 100, y: 400, width: 150, height: 60, color: '#00aa00', strokeWidth: 3, fill: null },
       { id: 'o5', pageId, z: 5, type: 'highlight', rects: [{ x: 50, y: 300, width: 180, height: 14 }], color: '#ffff00', opacity: 0.4 },

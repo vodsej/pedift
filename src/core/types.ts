@@ -86,6 +86,14 @@ export interface WhiteoutObj extends BaseObj {
   height: number
   color: string // usually page background; defaults white
 }
+export interface RedactionObj extends BaseObj {
+  type: 'redaction'
+  x: number
+  y: number
+  width: number
+  height: number
+  color: string // bar color in the output: '#000000' (default) or '#ffffff'
+}
 export interface ImageObj extends BaseObj {
   type: 'image'
   x: number
@@ -121,6 +129,7 @@ export type OverlayObject =
   | ShapeObj
   | HighlightObj
   | WhiteoutObj
+  | RedactionObj
   | ImageObj
   | SignatureObj
   | StampObj

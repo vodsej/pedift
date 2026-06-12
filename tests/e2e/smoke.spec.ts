@@ -753,3 +753,47 @@ test('q. select-mode move: an annotation drags across empty area (pointer captur
   expect(after!.x - before!.x).toBeGreaterThan(90)
   expect(after!.y - before!.y).toBeGreaterThan(70)
 })
+
+// ─── r. True redaction: covered text is unrecoverable in the saved PDF ─────────
+
+test('r. redaction: redacted page text is removed (not just covered) on save', async ({ page }) => {
+  await page.goto(APP)
+  await openPdfViaChooser(page, path.join(FIXTURES, 'plain-3page.pdf'))
+  await waitForCanvas(page)
+
+  // 1. Select the Redact tool and drag a box covering the whole first page.
+  await page.getByRole('button', { name: 'Redact' }).click()
+  const box = await page.locator('.overlay').first().boundingBox()
+  expect(box).not.toBeNull()
+  const x0 = box!.x + 12
+  const y0 = box!.y + 12
+  const x1 = box!.x + box!.width - 12
+  const y1 = box!.y + box!.height - 12
+  await page.mouse.move(x0, y0)
+  await page.mouse.down()
+  await page.mouse.move(x1, y1, { steps: 12 })
+  await page.mouse.up()
+
+  // The pending redaction box exists on screen.
+  await expect(page.locator('.overlay-obj').first()).toBeVisible()
+
+  // 2. Save and capture the download.
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: /save/i }).click()
+  const download = await downloadPromise
+  const savedPath = await download.path()
+  expect(savedPath).not.toBeNull()
+
+  const data = fs.readFileSync(savedPath!)
+  expect(data.slice(0, 5).toString('ascii')).toBe('%PDF-')
+
+  // 3. The saved doc still has 3 pages, but page 1's text is GONE (the page was
+  //    flattened to a raster), while the untouched pages keep their vector text.
+  const reloaded = await PDFDocument.load(new Uint8Array(data))
+  expect(reloaded.getPageCount()).toBe(3)
+
+  const text = await extractPdfText(data)
+  expect(text).not.toContain('Page 1') // redacted page: text truly removed
+  expect(text).toContain('Page 2') // untouched pages: vector text preserved
+  expect(text).toContain('Page 3')
+})

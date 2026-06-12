@@ -287,3 +287,84 @@ describe('buildSplit', () => {
     expect(results).toEqual([])
   })
 })
+
+// ---- redaction (flatten to image) ------------------------------------------
+
+// Minimal valid 1x1 baseline JPEG; embedJpg only needs parseable bytes.
+const JPEG_1x1 = new Uint8Array(
+  Buffer.from(
+    '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAAAv/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AfwD/2Q==',
+    'base64',
+  ),
+)
+
+describe('redaction flatten-to-image', () => {
+  it('rebuilds redacted pages from the rasterizer and copies the rest', async () => {
+    const bytes = fixture('plain-3page.pdf')
+    const src = makePlainSource(bytes)
+    const descs = descriptorsForSource('original', 3)
+
+    const srcDoc = await PDFDocument.load(bytes)
+    const srcSize = srcDoc.getPage(0).getSize()
+
+    const calls: Array<{ id: string; rects: unknown }> = []
+    const rects = [{ x: 10, y: 10, width: 50, height: 20, color: '#000000' }]
+    const ctx: BuildContext = {
+      sources: new Map([[src.id, src]]),
+      redactions: new Map([[descs[1].id, rects]]),
+      rasterizeRedacted: async (descriptor, rs) => {
+        calls.push({ id: descriptor.id, rects: rs })
+        return { bytes: JPEG_1x1, widthPts: 123, heightPts: 456 }
+      },
+    }
+
+    const doc = await assembleDocument(descs, ctx)
+    expect(doc.getPageCount()).toBe(3)
+
+    // The rasterizer ran exactly once, for the redacted page, with its bars.
+    expect(calls).toHaveLength(1)
+    expect(calls[0].id).toBe(descs[1].id)
+    expect(calls[0].rects).toEqual(rects)
+
+    // The redacted page is the fresh image page (distinctive mock size)...
+    const redacted = doc.getPage(1).getSize()
+    expect(redacted.width).toBeCloseTo(123)
+    expect(redacted.height).toBeCloseTo(456)
+    // ...while non-redacted pages are copied verbatim (original size).
+    expect(doc.getPage(0).getSize().width).toBeCloseTo(srcSize.width)
+    expect(doc.getPage(0).getSize().height).toBeCloseTo(srcSize.height)
+  })
+
+  it('reapplies rotation to the flattened page', async () => {
+    const bytes = fixture('plain-3page.pdf')
+    const src = makePlainSource(bytes)
+    const descs = descriptorsForSource('original', 1)
+    descs[0] = { ...descs[0], rotation: 90 }
+
+    const ctx: BuildContext = {
+      sources: new Map([[src.id, src]]),
+      redactions: new Map([[descs[0].id, [{ x: 0, y: 0, width: 10, height: 10, color: '#000000' }]]]),
+      rasterizeRedacted: async () => ({ bytes: JPEG_1x1, widthPts: 100, heightPts: 200 }),
+    }
+
+    const doc = await assembleDocument(descs, ctx)
+    expect(doc.getPage(0).getRotation().angle).toBe(90)
+  })
+
+  it('falls back to a normal copy when no rasterizer is wired', async () => {
+    const bytes = fixture('plain-3page.pdf')
+    const src = makePlainSource(bytes)
+    const descs = descriptorsForSource('original', 3)
+    const srcSize = (await PDFDocument.load(bytes)).getPage(1).getSize()
+
+    // redactions present but rasterizeRedacted absent → page is copied, not flattened.
+    const ctx: BuildContext = {
+      sources: new Map([[src.id, src]]),
+      redactions: new Map([[descs[1].id, [{ x: 0, y: 0, width: 10, height: 10, color: '#000000' }]]]),
+    }
+
+    const doc = await assembleDocument(descs, ctx)
+    expect(doc.getPageCount()).toBe(3)
+    expect(doc.getPage(1).getSize().width).toBeCloseTo(srcSize.width)
+  })
+})
