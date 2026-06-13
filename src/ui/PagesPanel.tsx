@@ -27,6 +27,8 @@ interface Props {
   onSplit: () => void
   onInsert: () => void
   onExportImage: () => void
+  /** Pages holding a live search match — drawn as a dot on the thumbnail. */
+  matchPageIds?: Set<string> | null
 }
 
 export function PagesPanel({
@@ -41,12 +43,25 @@ export function PagesPanel({
   onSplit,
   onInsert,
   onExportImage,
+  matchPageIds,
 }: Props) {
   const pages = editor.pages
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   const [dragging, setDragging] = useState(false)
+  const [announce, setAnnounce] = useState('')
 
   const selectionIds = () => (selection.size ? [...selection] : current ? [current] : [])
+
+  // Keyboard reorder (Alt+Arrow) — the only path that isn't drag-and-drop.
+  const movePageBy = (index: number, dir: -1 | 1) => {
+    if ((dir === -1 && index === 0) || (dir === 1 && index === pages.length - 1)) return
+    const id = pages[index].id
+    const to = dir === -1 ? index - 1 : index + 2 // movePages inserts *before* `to`
+    editor.reorder([id], to)
+    setCurrent(id)
+    setSelection(new Set([id]))
+    setAnnounce(t.pagesPanel.movedTo(dir === -1 ? index : index + 2, pages.length))
+  }
 
   const onThumbClick = (e: MouseEvent, id: string, index: number) => {
     if (e.shiftKey && current) {
@@ -87,7 +102,7 @@ export function PagesPanel({
 
   const drop = () => {
     if (dropIndex != null) {
-      const ids = selection.size ? [...selection] : []
+      const ids = selectionIds()
       if (ids.length) editor.reorder(ids, dropIndex)
     }
     setDropIndex(null)
@@ -100,6 +115,10 @@ export function PagesPanel({
   const clearSel = () => setSelection(new Set())
 
   const hasSel = selection.size > 0
+  const currentIndex = pages.findIndex((p) => p.id === current)
+  // The action bar targets the selection, or — with none — the current page.
+  const showActions = hasSel || current != null
+  const wouldEmpty = selectionIds().length >= pages.length // deleting all is refused
 
   return (
     <div class="pagespanel">
@@ -114,9 +133,13 @@ export function PagesPanel({
         </button>
       </div>
 
-      {hasSel && (
+      {showActions && (
         <div class="pagespanel__actions">
-          <span class="pagespanel__count">{t.workspace.selectedCount(selection.size)}</span>
+          <span class="pagespanel__count">
+            {hasSel
+              ? t.workspace.selectedCount(selection.size)
+              : `${t.common.page} ${currentIndex + 1}`}
+          </span>
           <div class="pagespanel__actionbtns">
             <IconButton label={t.pagesPanel.rotateLeft} onClick={() => rotate(-90)}>
               <IconRotateLeft size={18} />
@@ -133,17 +156,34 @@ export function PagesPanel({
             <IconButton label={t.pagesPanel.exportImage} onClick={onExportImage}>
               <IconImage size={18} />
             </IconButton>
-            <IconButton label={t.pagesPanel.delete} onClick={onDelete} variant="danger">
+            <IconButton
+              label={t.pagesPanel.delete}
+              onClick={onDelete}
+              variant="danger"
+              disabled={wouldEmpty}
+            >
               <IconTrash size={18} />
             </IconButton>
           </div>
         </div>
       )}
 
-      <div class={`pagespanel__list ${dragging ? 'is-dragging' : ''}`} onDragLeave={() => setDropIndex(null)}>
+      <div
+        class={`pagespanel__list ${dragging ? 'is-dragging' : ''}`}
+        role="list"
+        onDragOver={(e) => {
+          // Dragging into the empty area below the last card → drop at the end.
+          if (e.target === e.currentTarget) {
+            e.preventDefault()
+            setDropIndex(pages.length)
+          }
+        }}
+        onDragLeave={() => setDropIndex(null)}
+      >
         {pages.map((pd, index) => (
           <div
             key={pd.id}
+            role="listitem"
             class={`pagecard ${selection.has(pd.id) ? 'is-selected' : ''} ${current === pd.id ? 'is-current' : ''} ${dropIndex === index ? 'drop-before' : ''} ${dropIndex === index + 1 && index === pages.length - 1 ? 'drop-after' : ''}`}
             draggable
             onDragStart={(e) => startDrag(e, pd.id)}
@@ -158,14 +198,31 @@ export function PagesPanel({
               type="button"
               class="pagecard__btn"
               onClick={(e) => onThumbClick(e, pd.id, index)}
+              onKeyDown={(e) => {
+                if (!e.altKey) return
+                if (e.key === 'ArrowUp') {
+                  e.preventDefault()
+                  movePageBy(index, -1)
+                } else if (e.key === 'ArrowDown') {
+                  e.preventDefault()
+                  movePageBy(index, 1)
+                }
+              }}
               aria-pressed={selection.has(pd.id)}
               aria-label={`${t.common.page} ${index + 1}`}
             >
               <DescriptorThumb registry={registry} descriptor={pd} />
             </button>
+            {matchPageIds?.has(pd.id) && (
+              <span class="pagecard__match" title={t.find.open} aria-hidden="true" />
+            )}
             <span class="pagecard__num">{index + 1}</span>
           </div>
         ))}
+      </div>
+
+      <div class="sr-only" role="status" aria-live="polite">
+        {announce}
       </div>
 
       <div class="pagespanel__foot">

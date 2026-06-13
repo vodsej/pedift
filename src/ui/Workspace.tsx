@@ -91,6 +91,12 @@ export function Workspace({
   useEditorState(editor)
   const pages = editor.pages
 
+  // Dirty = the current snapshot differs from the one last downloaded. Snapshots
+  // are immutable and shared across undo/redo, so a reference compare is exact —
+  // saving, then undo→redo back to the saved point, reads as clean again.
+  const savedState = useRef(editor.state)
+  const isDirty = editor.state !== savedState.current
+
   const [selection, setSelection] = useState<Set<string>>(new Set())
   const [current, setCurrent] = useState<string | null>(pages[0]?.id ?? null)
   const [zoom, setZoom] = useState(1)
@@ -109,6 +115,14 @@ export function Workspace({
   const [docDialog, setDocDialog] = useState<DocAction | null>(null)
   const [pageAspect, setPageAspect] = useState(1.414)
   const search = useSearch(editor, registry)
+  // Pages that contain a current search match — drives the sidebar thumbnail dots.
+  const searchMatchPages = useMemo(
+    () =>
+      search.open && search.effectiveQuery
+        ? new Set(search.matches.map((m) => m.pageId))
+        : null,
+    [search.open, search.effectiveQuery, search.matches],
+  )
   const [OcrDialogComp, setOcrDialogComp] =
     useState<null | typeof import('./dialogs/OcrDialog')['OcrDialog']>(null)
 
@@ -153,9 +167,13 @@ export function Workspace({
   }, [currentDescriptor?.id])
 
   const insertImage = async () => {
+    setTool('image') // light up the toolbar button while the picker is open
     const files = await pickFiles({ accept: ACCEPT_IMAGE })
     const file = files[0]
-    if (!file) return
+    if (!file) {
+      setTool('select')
+      return
+    }
     try {
       const bytes = await fileToBytes(file)
       const format = detectImageFormat(bytes)
@@ -182,7 +200,12 @@ export function Workspace({
 
   const placeStamp = (text: string) => {
     setTool('select')
-    setInsertRequest({ kind: 'stamp', text, color: '#c0392b', fontSize: 28 })
+    setInsertRequest({
+      kind: 'stamp',
+      text,
+      color: toolOptions.stampColor,
+      fontSize: toolOptions.stampFontSize,
+    })
   }
 
   const baseWidth = Math.max(220, stageWidth - PAGE_PADDING)
@@ -209,6 +232,7 @@ export function Workspace({
     try {
       const bytes = await editor.build()
       downloadBytes(bytes, editedFilename(fileName))
+      savedState.current = editor.state // the downloaded file now matches this snapshot
       toast.success(t.toasts.saved(editedFilename(fileName)))
     } catch (err) {
       toast.error(friendlyMessage(err))
@@ -290,6 +314,24 @@ export function Workspace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.activeMatch])
 
+  // Warn before leaving (tab close / reload) with unsaved edits.
+  useEffect(() => {
+    if (!isDirty) return
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = '' // browsers show their own generic message
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [isDirty])
+
+  // Return focus to the toolbar Find button when the bar closes (keyboard users).
+  const prevSearchOpen = useRef(search.open)
+  useEffect(() => {
+    if (prevSearchOpen.current && !search.open) document.getElementById('find-toggle')?.focus()
+    prevSearchOpen.current = search.open
+  }, [search.open])
+
   // Ctrl+wheel / trackpad pinch zooms the PDF instead of the browser page.
   useEffect(() => {
     const el = scrollRef.current
@@ -311,11 +353,12 @@ export function Workspace({
         <div class="topbar__left">
           <IconButton
             label={t.workspace.closeDocument}
-            onClick={() => (editor.canUndo ? setDialog('confirmClose') : onClose())}
+            onClick={() => (isDirty ? setDialog('confirmClose') : onClose())}
           >
             <IconChevronLeft />
           </IconButton>
-          <span class="topbar__filename" title={fileName}>
+          <span class="topbar__filename" title={isDirty ? `• ${fileName}` : fileName}>
+            {isDirty && <span class="topbar__dirty" aria-hidden="true">•</span>}
             {fileName}
           </span>
         </div>
@@ -331,7 +374,15 @@ export function Workspace({
           <IconButton label={t.workspace.zoomOut} onClick={() => zoomBy(0.8)}>
             <IconZoomOut />
           </IconButton>
-          <span class="zoom-label">{Math.round(zoom * 100)}%</span>
+          <button
+            type="button"
+            class="zoom-label"
+            onClick={() => setZoom(1)}
+            title={t.workspace.resetZoom}
+            aria-label={t.workspace.resetZoom}
+          >
+            {Math.round(zoom * 100)}%
+          </button>
           <IconButton label={t.workspace.zoomIn} onClick={() => zoomBy(1.25)}>
             <IconZoomIn />
           </IconButton>
@@ -343,6 +394,7 @@ export function Workspace({
           </IconButton>
           <span class="topbar__divider" />
           <IconButton
+            id="find-toggle"
             label={t.find.open}
             active={search.open}
             onClick={() => search.setOpen(!search.open)}
@@ -383,6 +435,7 @@ export function Workspace({
             setSelection={setSelection}
             current={current}
             setCurrent={setCurrent}
+            matchPageIds={searchMatchPages}
             onDelete={() => setDialog('confirmDelete')}
             onExtract={extract}
             onSplit={() => setDialog('split')}
@@ -492,7 +545,7 @@ export function Workspace({
         <ConfirmDialog
           title={t.workspace.closeDocument}
           message={t.workspace.closeConfirm}
-          confirmLabel={t.workspace.closeDocument}
+          confirmLabel={t.workspace.discardAndClose}
           onConfirm={onClose}
           onCancel={() => setDialog(null)}
         />

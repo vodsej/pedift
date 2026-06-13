@@ -34,15 +34,44 @@ interface Item {
 export function DocumentMenu({ onSelect }: { onSelect: (a: DocAction) => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  const focusTrigger = () => ref.current?.querySelector<HTMLElement>('button.btn')?.focus()
 
   useEffect(() => {
     if (!open) return
     const onDown = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        focusTrigger()
+      }
+    }
     document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [open])
+
+  // Move focus into the menu when it opens (ARIA menu pattern, keyboard entry).
+  useEffect(() => {
+    if (open) listRef.current?.querySelector<HTMLElement>('.docmenu__item')?.focus()
+  }, [open])
+
+  const onListKey = (e: KeyboardEvent) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    e.preventDefault()
+    const items = Array.from(listRef.current?.querySelectorAll<HTMLElement>('.docmenu__item') ?? [])
+    if (!items.length) return
+    const i = items.indexOf(document.activeElement as HTMLElement)
+    const next =
+      e.key === 'ArrowDown' ? (i + 1) % items.length : (i - 1 + items.length) % items.length
+    items[next]?.focus()
+  }
 
   const items: Item[] = [
     { action: 'forms', label: t.documentMenu.fillForms, icon: <IconText size={17} /> },
@@ -65,7 +94,7 @@ export function DocumentMenu({ onSelect }: { onSelect: (a: DocAction) => void })
         <IconMenu size={18} /> {t.workspace.documentMenu}
       </Button>
       {open && (
-        <div class="docmenu__list" role="menu">
+        <div class="docmenu__list" role="menu" ref={listRef} onKeyDown={onListKey}>
           {items.map((it) => (
             <button
               key={it.action}

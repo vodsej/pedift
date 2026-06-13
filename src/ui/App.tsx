@@ -96,6 +96,7 @@ export function App() {
       e.preventDefault()
       const f = e.dataTransfer?.files?.[0]
       if (f && isPdfFile(f)) void openFile(f)
+      else if (f) toast.error(t.errors.notAPdf) // dropped something that isn't a PDF
     }
     window.addEventListener('dragover', onOver)
     window.addEventListener('drop', onDrop)

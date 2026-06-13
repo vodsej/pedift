@@ -20,7 +20,6 @@ export interface SearchApi {
   /** Open/close the find bar; bumps `focusNonce` each time it's (re)opened. */
   setOpen: (v: boolean) => void
   focusNonce: number
-  requestFocus: () => void
   query: string
   setQuery: (v: string) => void
   /** Debounced, trimmed query actually used for matching/highlighting. */
@@ -73,7 +72,6 @@ export function useSearch(editor: EditorDocument, registry: RenderRegistry): Sea
       setEffectiveQuery('')
     }
   }, [])
-  const requestFocus = useCallback(() => setFocusNonce((n) => n + 1), [])
 
   // Debounce the raw query into the one used for matching.
   useEffect(() => {
@@ -135,7 +133,6 @@ export function useSearch(editor: EditorDocument, registry: RenderRegistry): Sea
     open,
     setOpen,
     focusNonce,
-    requestFocus,
     query,
     setQuery,
     effectiveQuery,

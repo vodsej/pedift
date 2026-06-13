@@ -38,7 +38,7 @@ export function FindBar({ search }: { search: SearchApi }) {
         : t.find.counter(search.active + 1, total)
 
   return (
-    <div class="find-bar" role="search">
+    <div class="find-bar" role="search" aria-busy={search.busy}>
       <IconSearch size={16} class="find-bar__icon" />
       <input
         ref={inputRef}
@@ -49,7 +49,11 @@ export function FindBar({ search }: { search: SearchApi }) {
         onInput={(e) => search.setQuery((e.target as HTMLInputElement).value)}
         onKeyDown={onKeyDown}
       />
-      <span class={`find-bar__count${hasQuery && total === 0 && !search.busy ? ' is-empty' : ''}`}>
+      <span
+        class={`find-bar__count${hasQuery && total === 0 && !search.busy ? ' is-empty' : ''}${search.busy ? ' is-busy' : ''}`}
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {counter}
       </span>
       <span class="find-bar__divider" />
