@@ -86,6 +86,8 @@ export const cs: Strings = {
     dismiss: 'Zavřít',
     fromPage: 'Od stránky',
     toPage: 'Do stránky',
+    applied: 'Změny použity',
+    invalidRange: 'Zadejte platný rozsah stránek.',
   },
 
   workspace: {
@@ -101,13 +103,15 @@ export const cs: Strings = {
     fitWidth: 'Přizpůsobit šířku',
     closeDocument: 'Zavřít dokument',
     closeConfirm: 'Zavřít tento dokument? Všechny neuložené úpravy budou zahozeny.',
+    discardAndClose: 'Zahodit změny',
+    resetZoom: 'Obnovit na 100 %',
     pagesPanel: 'Stránky',
     pageOf: (n: number, total: number) => `Stránka ${n} z ${total}`,
     selectedCount: (n: number) => `Vybráno: ${n}`,
   },
 
   find: {
-    open: 'Najít',
+    open: 'Najít (Ctrl+F)',
     placeholder: 'Najít v dokumentu',
     previous: 'Předchozí výskyt',
     next: 'Další výskyt',
@@ -171,6 +175,7 @@ export const cs: Strings = {
       ),
     selectAll: 'Vybrat vše',
     deselectAll: 'Zrušit výběr',
+    movedTo: (n: number, total: number) => `Přesunuto na pozici ${n} z ${total}`,
   },
 
   documentMenu: {
@@ -189,6 +194,7 @@ export const cs: Strings = {
       hint: 'Přidejte dvě nebo více PDF, přetažením nastavte pořadí a sloučte.',
       empty: 'Pro sloučení přidejte alespoň dvě PDF.',
       mergeButton: 'Sloučit a stáhnout',
+      merging: 'Slučuji…',
     },
     imagesToPdf: {
       title: 'Obrázky → PDF',
@@ -202,6 +208,7 @@ export const cs: Strings = {
       landscape: 'Na šířku',
       margin: 'Okraj',
       createButton: 'Vytvořit a stáhnout',
+      creating: 'Vytvářím…',
       empty: 'Přidejte alespoň jeden obrázek.',
     },
     compress: {
@@ -216,6 +223,8 @@ export const cs: Strings = {
       saved: (pct: number) => `o ${pct} % menší`,
       larger: 'Již optimalizováno — menší verzi se nepodařilo vytvořit',
       compressButton: 'Komprimovat a stáhnout',
+      pickFile: 'Přetáhněte PDF ke kompresi nebo klikněte pro výběr',
+      tryAgain: 'Zkusit jinou kvalitu',
     },
     protect: {
       title: 'Zabezpečit / Odebrat heslo',
@@ -227,8 +236,12 @@ export const cs: Strings = {
       currentPassword: 'Současné heslo',
       mismatch: 'Hesla se neshodují.',
       empty: 'Zadejte heslo.',
-      protectButton: 'Zabezpečit a stáhnout',
-      unprotectButton: 'Odebrat heslo a stáhnout',
+      protectButton: 'Použít',
+      unprotectButton: 'Odebrat heslo',
+      pickFile: 'Přetáhněte PDF nebo klikněte pro výběr',
+      saveNote: 'Použije se na soubor při příštím uložení.',
+      appliedAdd: 'Heslo nastaveno — použije se při uložení',
+      appliedRemove: 'Heslo odebráno — použije se při uložení',
       unsupportedTitle: 'Ochrana heslem není dostupná',
       unsupported:
         'Tato verze neumí spolehlivě přidávat ani odebírat hesla PDF, proto je funkce vypnutá, aby nevznikaly poškozené soubory.',
@@ -250,6 +263,7 @@ export const cs: Strings = {
       allPages: 'Všechny stránky',
       somePages: 'Stránky (např. 1-3, 5)',
       somePagesPlaceholder: '1-3, 5',
+      somePagesPicker: 'Vybrané stránky',
       position: 'Vložit na',
       beforePage: (n: number) => `Před stránku ${n}`,
       atEnd: 'Na konec',
@@ -275,6 +289,14 @@ export const cs: Strings = {
       scale3x: '3× (216 dpi)',
       scale4x: '4× (288 dpi)',
       exportButton: 'Exportovat a stáhnout',
+      exporting: (current: number, total: number) => `Exportuji stránku ${current} z ${total}…`,
+      done: (n: number) =>
+        plural(
+          n,
+          `Exportována ${n} stránka jako obrázek`,
+          `Exportovány ${n} stránky jako obrázky`,
+          `Exportováno ${n} stránek jako obrázky`,
+        ),
     },
     metadata: {
       title: 'Vlastnosti dokumentu',
@@ -300,6 +322,7 @@ export const cs: Strings = {
       startAt: 'Začít od',
       range: 'Stránky',
       addButton: 'Přidat čísla stránek',
+      applied: 'Čísla stránek přidána',
     },
     watermark: {
       title: 'Vodoznak',
@@ -307,6 +330,7 @@ export const cs: Strings = {
       placeholder: 'např. DŮVĚRNÉ',
       addButton: 'Přidat vodoznak',
       applyTo: 'Stránky',
+      applied: 'Vodoznak přidán',
     },
     signature: {
       title: 'Podpis',
@@ -321,11 +345,13 @@ export const cs: Strings = {
       title: 'Vyplnit pole formuláře',
       none: 'V tomto dokumentu nebyla nalezena žádná vyplnitelná pole formuláře.',
       saveButton: 'Použít a pokračovat',
+      applied: 'Pole formuláře vyplněna',
     },
     flatten: {
       title: 'Sloučit vrstvy dokumentu',
       hint: 'Zapeče pole formulářů a anotace do stránky, takže je již nelze upravovat. Po uložení nelze vrátit zpět.',
       flattenButton: 'Sloučit vrstvy',
+      applied: 'Vrstvy sloučeny',
     },
     stamp: {
       title: 'Razítko',
@@ -354,8 +380,16 @@ export const cs: Strings = {
       run: 'Spustit OCR',
       detecting: 'Hledám naskenované stránky…',
       progress: 'Rozpoznávám stránku {current} z {total}…',
-      done: 'OCR aplikováno na {count} stránku/stránek',
+      done: (count: number) =>
+        plural(
+          count,
+          `OCR aplikováno na ${count} stránku`,
+          `OCR aplikováno na ${count} stránky`,
+          `OCR aplikováno na ${count} stránek`,
+        ),
       noPages: 'Nebyly vybrány žádné stránky.',
+      cancelling: 'Ruším…',
+      allHaveText: 'Všechny stránky už obsahují vybíratelný text.',
     },
   },
 
@@ -363,6 +397,17 @@ export const cs: Strings = {
     opened: (name: string) => `Otevřeno: ${name}`,
     saved: (name: string) => `Uloženo: ${name}`,
     merged: (n: number) => `Sloučeno ${n} PDF`,
+    createdFromImages: (n: number) =>
+      plural(
+        n,
+        `Vytvořeno PDF z ${n} obrázku`,
+        `Vytvořeno PDF z ${n} obrázků`,
+        `Vytvořeno PDF z ${n} obrázků`,
+      ),
+    pagesInserted: (n: number) =>
+      plural(n, `Vložena ${n} stránka`, `Vloženy ${n} stránky`, `Vloženo ${n} stránek`),
+    splitIntoFiles: (n: number) =>
+      plural(n, `Rozděleno na ${n} soubor`, `Rozděleno na ${n} soubory`, `Rozděleno na ${n} souborů`),
     pagesDeleted: (n: number) =>
       plural(n, `Smazána ${n} stránka`, `Smazány ${n} stránky`, `Smazáno ${n} stránek`),
     pagesExtracted: (n: number) =>

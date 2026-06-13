@@ -29,7 +29,7 @@ export function newText(pageId: string, rect: CropBox, opts: ToolOptions, z: num
     fontSize: opts.fontSize,
     font: opts.font,
     color: opts.color,
-    align: 'left',
+    align: opts.align,
   }
 }
 

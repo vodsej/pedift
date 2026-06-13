@@ -1,3 +1,5 @@
+import { t } from '../../strings'
+
 interface SpinnerProps {
   size?: number
   label?: string
@@ -5,7 +7,7 @@ interface SpinnerProps {
 
 export function Spinner({ size = 24, label }: SpinnerProps) {
   return (
-    <span class="spinner-wrap">
+    <span class="spinner-wrap" role="status" aria-label={label ?? t.common.loading}>
       <span class="spinner" style={{ width: size, height: size }} aria-hidden="true" />
       {label && <span class="spinner-label">{label}</span>}
     </span>

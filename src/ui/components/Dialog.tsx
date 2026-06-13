@@ -12,14 +12,51 @@ interface DialogProps {
   /** Max content width preset. */
   size?: 'sm' | 'md' | 'lg'
   icon?: ComponentChildren
+  /** While true the dialog refuses to dismiss (Escape, backdrop, ✕) — used to
+   *  protect an irreversible async operation that is in flight. */
+  locked?: boolean
 }
 
-export function Dialog({ title, onClose, children, footer, size = 'md', icon }: DialogProps) {
+const FOCUSABLE =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+export function Dialog({ title, onClose, children, footer, size = 'md', icon, locked = false }: DialogProps) {
   const ref = useRef<HTMLDivElement>(null)
+  // Read the latest props from inside the once-on-mount effect without retriggering it.
+  const lockedRef = useRef(locked)
+  lockedRef.current = locked
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
+    // Remember who opened us so focus can return there on close (WCAG 2.4.3).
+    const trigger = document.activeElement as HTMLElement | null
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        if (!lockedRef.current) onCloseRef.current()
+        return
+      }
+      // Trap Tab focus inside the modal (WCAG 2.1.2).
+      if (e.key === 'Tab' && ref.current) {
+        const focusable = Array.from(ref.current.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+          (el) => el.offsetParent !== null,
+        )
+        if (focusable.length === 0) {
+          e.preventDefault()
+          ref.current.focus()
+          return
+        }
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        const active = document.activeElement
+        if (e.shiftKey && (active === first || active === ref.current)) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
     document.addEventListener('keydown', onKey)
     // focus the dialog for keyboard users
@@ -29,11 +66,15 @@ export function Dialog({ title, onClose, children, footer, size = 'md', icon }: 
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
+      trigger?.focus?.()
     }
-  }, [onClose])
+  }, [])
 
   return (
-    <div class="modal-scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      class="modal-scrim"
+      onMouseDown={(e) => e.target === e.currentTarget && !locked && onClose()}
+    >
       <div
         ref={ref}
         class={`modal modal--${size}`}
@@ -47,7 +88,7 @@ export function Dialog({ title, onClose, children, footer, size = 'md', icon }: 
             {icon && <span class="modal__icon">{icon}</span>}
             {title}
           </h2>
-          <IconButton label={t.common.close} onClick={onClose}>
+          <IconButton label={t.common.close} onClick={onClose} disabled={locked}>
             <IconClose />
           </IconButton>
         </header>

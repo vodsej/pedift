@@ -77,6 +77,8 @@ export const en = {
     dismiss: 'Dismiss',
     fromPage: 'From page',
     toPage: 'To page',
+    applied: 'Changes applied',
+    invalidRange: 'Enter a valid page range.',
   },
 
   workspace: {
@@ -92,13 +94,15 @@ export const en = {
     fitWidth: 'Fit width',
     closeDocument: 'Close document',
     closeConfirm: 'Close this document? Any unsaved edits will be discarded.',
+    discardAndClose: 'Discard changes',
+    resetZoom: 'Reset to 100%',
     pagesPanel: 'Pages',
     pageOf: (n: number, total: number) => `Page ${n} of ${total}`,
     selectedCount: (n: number) => `${n} selected`,
   },
 
   find: {
-    open: 'Find',
+    open: 'Find (Ctrl+F)',
     placeholder: 'Find in document',
     previous: 'Previous match',
     next: 'Next match',
@@ -157,6 +161,7 @@ export const en = {
       n === 1 ? 'Delete this page?' : `Delete these ${n} pages?`,
     selectAll: 'Select all',
     deselectAll: 'Deselect all',
+    movedTo: (n: number, total: number) => `Moved to position ${n} of ${total}`,
   },
 
   documentMenu: {
@@ -175,6 +180,7 @@ export const en = {
       hint: 'Add two or more PDFs, drag to set the order, then merge.',
       empty: 'Add at least two PDFs to merge.',
       mergeButton: 'Merge & download',
+      merging: 'Merging…',
     },
     imagesToPdf: {
       title: 'Images → PDF',
@@ -188,6 +194,7 @@ export const en = {
       landscape: 'Landscape',
       margin: 'Margin',
       createButton: 'Create & download',
+      creating: 'Creating…',
       empty: 'Add at least one image.',
     },
     compress: {
@@ -202,6 +209,8 @@ export const en = {
       saved: (pct: number) => `${pct}% smaller`,
       larger: 'Already optimized — no smaller version produced',
       compressButton: 'Compress & download',
+      pickFile: 'Drop a PDF to compress, or click to choose',
+      tryAgain: 'Try another quality',
     },
     protect: {
       title: 'Protect / Unprotect',
@@ -213,8 +222,12 @@ export const en = {
       currentPassword: 'Current password',
       mismatch: 'Passwords do not match.',
       empty: 'Enter a password.',
-      protectButton: 'Protect & download',
-      unprotectButton: 'Unprotect & download',
+      protectButton: 'Apply',
+      unprotectButton: 'Remove password',
+      pickFile: 'Drop a PDF, or click to choose',
+      saveNote: 'Applied to the file the next time you save.',
+      appliedAdd: 'Password set — applied when you save',
+      appliedRemove: 'Password removed — applied when you save',
       unsupportedTitle: 'Password protection unavailable',
       unsupported:
         'This build cannot add or remove PDF passwords reliably, so the feature is disabled to avoid producing broken files.',
@@ -236,6 +249,7 @@ export const en = {
       allPages: 'All pages',
       somePages: 'Pages (e.g. 1-3, 5)',
       somePagesPlaceholder: '1-3, 5',
+      somePagesPicker: 'Specific pages',
       position: 'Insert at',
       beforePage: (n: number) => `Before page ${n}`,
       atEnd: 'At the end',
@@ -261,6 +275,8 @@ export const en = {
       scale3x: '3× (216 dpi)',
       scale4x: '4× (288 dpi)',
       exportButton: 'Export & download',
+      exporting: (current: number, total: number) => `Exporting page ${current} of ${total}…`,
+      done: (n: number) => `Exported ${n} page${n === 1 ? '' : 's'} as images`,
     },
     metadata: {
       title: 'Document properties',
@@ -286,6 +302,7 @@ export const en = {
       startAt: 'Start at',
       range: 'Pages',
       addButton: 'Add page numbers',
+      applied: 'Page numbers added',
     },
     watermark: {
       title: 'Watermark',
@@ -293,6 +310,7 @@ export const en = {
       placeholder: 'e.g. CONFIDENTIAL',
       addButton: 'Add watermark',
       applyTo: 'Pages',
+      applied: 'Watermark added',
     },
     signature: {
       title: 'Signature',
@@ -307,11 +325,13 @@ export const en = {
       title: 'Fill form fields',
       none: 'No fillable form fields were found in this document.',
       saveButton: 'Apply & continue',
+      applied: 'Form fields filled',
     },
     flatten: {
       title: 'Flatten document',
       hint: 'Bakes form fields and annotations into the page so they can no longer be edited. This cannot be undone after saving.',
       flattenButton: 'Flatten',
+      applied: 'Document flattened',
     },
     stamp: {
       title: 'Stamp',
@@ -340,8 +360,10 @@ export const en = {
       run: 'Run OCR',
       detecting: 'Detecting scanned pages…',
       progress: 'Recognizing page {current} of {total}…',
-      done: 'OCR applied to {count} page(s)',
+      done: (count: number) => `OCR applied to ${count} page${count === 1 ? '' : 's'}`,
       noPages: 'No pages selected.',
+      cancelling: 'Cancelling…',
+      allHaveText: 'All pages already contain selectable text.',
     },
   },
 
@@ -349,6 +371,9 @@ export const en = {
     opened: (name: string) => `Opened ${name}`,
     saved: (name: string) => `Saved ${name}`,
     merged: (n: number) => `Merged ${n} PDFs`,
+    createdFromImages: (n: number) => `Created PDF from ${n} image${n === 1 ? '' : 's'}`,
+    pagesInserted: (n: number) => `Inserted ${n} page${n === 1 ? '' : 's'}`,
+    splitIntoFiles: (n: number) => `Split into ${n} file${n === 1 ? '' : 's'}`,
     pagesDeleted: (n: number) => `Deleted ${n} page${n === 1 ? '' : 's'}`,
     pagesExtracted: (n: number) => `Extracted ${n} page${n === 1 ? '' : 's'}`,
     nothingToUndo: 'Nothing to undo',

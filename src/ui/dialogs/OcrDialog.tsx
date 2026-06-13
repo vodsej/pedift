@@ -96,7 +96,7 @@ export function OcrDialog({
 
       const fontBytes = await getOcrFont()
       editor.setOcrData(collected, fontBytes, fontkit)
-      toast.success(t.dialogs.ocr.done.replace('{count}', String(targets.length)))
+      toast.success(t.dialogs.ocr.done(targets.length))
       onClose()
     } catch (err) {
       toast.error(friendlyMessage(err))

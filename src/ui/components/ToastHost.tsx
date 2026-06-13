@@ -5,9 +5,15 @@ import { t } from '../../strings'
 export function ToastHost() {
   const toasts = useToasts()
   return (
-    <div class="toast-host" role="status" aria-live="polite">
+    <div class="toast-host">
       {toasts.map((toast) => (
-        <div key={toast.id} class={`toast toast--${toast.kind}`}>
+        <div
+          key={toast.id}
+          class={`toast toast--${toast.kind}`}
+          // Errors interrupt (assertive); success/info wait their turn (polite).
+          role={toast.kind === 'error' ? 'alert' : 'status'}
+          aria-live={toast.kind === 'error' ? 'assertive' : 'polite'}
+        >
           <span class="toast__icon">
             {toast.kind === 'success' ? (
               <IconCheck size={18} />

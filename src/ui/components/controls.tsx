@@ -5,18 +5,23 @@ export function Field({
   label,
   children,
   hint,
+  as = 'label',
 }: {
   label: string
   children: ComponentChildren
   hint?: string
+  /** `label` associates with a single control; use `div` when the children are a
+   *  group (radios, SegmentedControl) — a <label> may not wrap interactive groups. */
+  as?: 'label' | 'div'
 }) {
-  return (
-    <label class="field">
+  const inner = (
+    <>
       <span class="field__label">{label}</span>
       {children}
       {hint && <span class="field__hint">{hint}</span>}
-    </label>
+    </>
   )
+  return as === 'div' ? <div class="field">{inner}</div> : <label class="field">{inner}</label>
 }
 
 export function TextInput(props: JSX.InputHTMLAttributes<HTMLInputElement>) {
@@ -101,19 +106,22 @@ export function SegmentedControl<T extends string>({
   value,
   onChange,
   options,
+  ariaLabel,
 }: {
   value: T
   onChange: (v: T) => void
   options: Array<{ value: T; label: string }>
+  ariaLabel?: string
 }) {
+  // A one-of-N selector is a radio group, not a tab list (no associated panels).
   return (
-    <div class="segmented" role="tablist">
+    <div class="segmented" role="radiogroup" aria-label={ariaLabel}>
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
-          role="tab"
-          aria-selected={value === o.value}
+          role="radio"
+          aria-checked={value === o.value}
           class={`segmented__opt ${value === o.value ? 'is-active' : ''}`}
           onClick={() => onChange(o.value)}
         >

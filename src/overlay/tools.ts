@@ -22,9 +22,12 @@ export interface ToolOptions {
   strokeWidth: number // PDF points
   fontSize: number // PDF points
   font: StandardFontName
+  align: 'left' | 'center' | 'right'
   highlightColor: string
   whiteoutColor: string
   redactionColor: string
+  stampColor: string
+  stampFontSize: number // PDF points
 }
 
 export function defaultToolOptions(): ToolOptions {
@@ -34,9 +37,12 @@ export function defaultToolOptions(): ToolOptions {
     strokeWidth: 2,
     fontSize: 16,
     font: 'Helvetica',
+    align: 'left',
     highlightColor: '#ffd23f',
     whiteoutColor: '#ffffff',
     redactionColor: '#000000',
+    stampColor: '#c0392b',
+    stampFontSize: 28,
   }
 }
 
