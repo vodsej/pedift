@@ -92,7 +92,7 @@ export function WatermarkDialog({
           ariaLabel={t.dialogs.watermark.applyTo}
           options={[
             { value: 'all', label: t.common.all },
-            { value: 'range', label: t.dialogs.pageNumbers.range },
+            { value: 'range', label: t.common.range },
           ]}
         />
       </Field>

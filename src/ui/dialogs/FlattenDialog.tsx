@@ -4,7 +4,7 @@ import type { RenderRegistry } from '../../render/registry'
 import { flattenDocument } from '../../core/forms'
 import { Dialog } from '../components/Dialog'
 import { Button } from '../components/Button'
-import { IconCheck } from '../icons'
+import { IconLayers } from '../icons'
 import { toast } from '../toast'
 import { friendlyMessage } from '../../core/errors'
 import { t } from '../../strings'
@@ -43,7 +43,7 @@ export function FlattenDialog({
       title={t.dialogs.flatten.title}
       onClose={onClose}
       locked={busy}
-      icon={<IconCheck size={18} />}
+      icon={<IconLayers size={18} />}
       footer={
         <>
           <Button onClick={onClose} disabled={busy}>{t.common.cancel}</Button>

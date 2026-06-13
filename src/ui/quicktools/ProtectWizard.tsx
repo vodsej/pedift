@@ -4,7 +4,7 @@ import { Button } from '../components/Button'
 import { DropZone } from '../components/DropZone'
 import { Field, TextInput, SegmentedControl } from '../components/controls'
 import { Spinner } from '../components/Spinner'
-import { IconShield, IconFile, IconLock } from '../icons'
+import { IconFile, IconLock } from '../icons'
 import { toast } from '../toast'
 import { friendlyMessage } from '../../core/errors'
 import { addPassword, removePassword } from '../../core/crypto'
@@ -78,7 +78,7 @@ export function ProtectWizard({
       <Dialog
         title={t.dialogs.protect.unsupportedTitle}
         onClose={onClose}
-        icon={<IconShield size={18} />}
+        icon={<IconLock size={18} />}
         footer={<Button onClick={onClose}>{t.common.close}</Button>}
       >
         <div class="doc-unsupported">
@@ -105,7 +105,7 @@ export function ProtectWizard({
     <Dialog
       title={t.dialogs.protect.title}
       onClose={onClose}
-      icon={<IconShield size={18} />}
+      icon={<IconLock size={18} />}
       footer={footer}
     >
       {/* File picker */}

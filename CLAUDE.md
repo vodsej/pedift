@@ -68,6 +68,8 @@ All user-facing text goes through `t` imported from `src/strings` (the index mod
 
 Localization lives in `src/strings/`: `en.ts` is the canonical table whose shape (`Strings`) every locale must satisfy (`en` is intentionally *not* `as const` so locales can supply their own text); `cs.ts` is the Czech table; `index.ts` holds the active locale and exports `t` as a **live ES binding** that `setLocale` reassigns. Components read `t.x.y` at render time, so a single forced re-render at the app root (`useLocale` in `App.tsx`) cascades a locale change through the whole tree. To add a locale: add `<code>.ts` satisfying `Strings`, register it in `index.ts` (`tables`, `LOCALES`, `Locale`, detection), and extend `LangToggle`. **Gotcha:** never capture `t.*` into a module-level `const` — it freezes the value at the boot locale; build such lists inside the component instead (see `quickTools()` in `Landing.tsx`).
 
+Three non-enforced UI conventions to preserve when adding menu items or dialogs: (1) A Document-menu label ends with `…` (U+2026) when it opens a dialog that **gathers input**; pure-confirmation actions (e.g. Flatten) do not. (2) A dialog's `<Dialog icon={…}>` must match the icon used for that action in `DocumentMenu.tsx` or the landing quick-tool tile. (3) `IconShield` is reserved solely for the "Private & offline" privacy badge; password-protection UI (landing tile, Document menu, ProtectDialog, ProtectWizard) uses `IconLock` everywhere.
+
 ### Two-edition build
 
 pedift ships two artifacts from the same source tree:

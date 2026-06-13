@@ -7,7 +7,7 @@ import { Dialog } from '../components/Dialog'
 import { Button } from '../components/Button'
 import { TextInput, Select } from '../components/controls'
 import { Spinner } from '../components/Spinner'
-import { IconCheck } from '../icons'
+import { IconText } from '../icons'
 import { toast } from '../toast'
 import { friendlyMessage } from '../../core/errors'
 import { t } from '../../strings'
@@ -130,7 +130,7 @@ export function FillFormsDialog({
       title={t.dialogs.fillForms.title}
       onClose={onClose}
       locked={busy}
-      icon={<IconCheck size={18} />}
+      icon={<IconText size={18} />}
       footer={
         loading || fields.length === 0 ? (
           <Button onClick={onClose}>{t.common.close}</Button>

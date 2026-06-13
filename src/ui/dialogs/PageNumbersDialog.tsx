@@ -113,7 +113,7 @@ export function PageNumbersDialog({
           ariaLabel={t.dialogs.pageNumbers.range}
           options={[
             { value: 'all', label: t.common.all },
-            { value: 'range', label: t.dialogs.pageNumbers.range },
+            { value: 'range', label: t.common.range },
           ]}
         />
       </Field>

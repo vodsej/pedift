@@ -3,7 +3,7 @@ import type { EditorDocument } from '../../core/document'
 import { Dialog } from '../components/Dialog'
 import { Button } from '../components/Button'
 import { Field, TextInput, SegmentedControl } from '../components/controls'
-import { IconShield } from '../icons'
+import { IconLock } from '../icons'
 import { toast } from '../toast'
 import { t } from '../../strings'
 import '../styles/docdialogs.css'
@@ -49,7 +49,7 @@ export function ProtectDialog({
       <Dialog
         title={t.dialogs.protect.unsupportedTitle}
         onClose={onClose}
-        icon={<IconShield size={18} />}
+        icon={<IconLock size={18} />}
         footer={<Button onClick={onClose}>{t.common.close}</Button>}
       >
         <div class="doc-unsupported">
@@ -63,7 +63,7 @@ export function ProtectDialog({
     <Dialog
       title={t.dialogs.protect.title}
       onClose={onClose}
-      icon={<IconShield size={18} />}
+      icon={<IconLock size={18} />}
       footer={
         <>
           <Button onClick={onClose}>{t.common.cancel}</Button>

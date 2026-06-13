@@ -66,6 +66,7 @@ export const en = {
     page: 'Page',
     pages: 'Pages',
     all: 'All',
+    range: 'Range',
     none: 'None',
     loading: 'Working…',
     dragToReorder: 'Drag to reorder',
@@ -131,8 +132,8 @@ export const en = {
     image: 'Insert image',
     signature: 'Signature',
     stamp: 'Stamp',
-    pageNumbers: 'Page numbers',
-    watermark: 'Watermark',
+    pageNumbers: 'Page numbers…',
+    watermark: 'Watermark…',
     color: 'Color',
     colorAriaLabel: 'Color',
     fill: 'Fill',
@@ -169,7 +170,7 @@ export const en = {
   },
 
   documentMenu: {
-    fillForms: 'Fill forms',
+    fillForms: 'Fill forms…',
     flatten: 'Flatten',
     ocr: 'OCR…',
     metadata: 'Metadata…',

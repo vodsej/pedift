@@ -75,6 +75,7 @@ export const cs: Strings = {
     page: 'Stránka',
     pages: 'Stránky',
     all: 'Vše',
+    range: 'Rozsah',
     none: 'Žádné',
     loading: 'Pracuji…',
     dragToReorder: 'Přetažením změníte pořadí',
@@ -140,8 +141,8 @@ export const cs: Strings = {
     image: 'Vložit obrázek',
     signature: 'Podpis',
     stamp: 'Razítko',
-    pageNumbers: 'Čísla stránek',
-    watermark: 'Vodoznak',
+    pageNumbers: 'Čísla stránek…',
+    watermark: 'Vodoznak…',
     color: 'Barva',
     colorAriaLabel: 'Barva',
     fill: 'Výplň',
@@ -183,7 +184,7 @@ export const cs: Strings = {
   },
 
   documentMenu: {
-    fillForms: 'Vyplnit formuláře',
+    fillForms: 'Vyplnit formuláře…',
     flatten: 'Sloučit vrstvy',
     ocr: 'OCR (rozpoznat text)…',
     metadata: 'Metadata…',
