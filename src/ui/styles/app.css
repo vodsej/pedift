@@ -84,6 +84,9 @@
   color: var(--text-faint);
   font-size: 13px;
 }
+.landing__version {
+  font-variant-numeric: tabular-nums;
+}
 .landing__sep {
   color: var(--border);
   margin: 0 8px;

@@ -142,6 +142,8 @@ export function Landing({
         <button type="button" class="landing__save-btn" onClick={handleSavePage}>
           <IconDownload size={13} />{t.landing.saveThisPage}
         </button>
+        <span class="landing__sep" aria-hidden="true"></span>
+        <span class="landing__version">v{__APP_VERSION__}</span>
       </footer>
     </div>
   )

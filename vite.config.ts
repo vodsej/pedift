@@ -2,6 +2,10 @@ import { defineConfig } from 'vite'
 import preact from '@preact/preset-vite'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 import { fileURLToPath } from 'node:url'
+import { readFileSync } from 'node:fs'
+
+// App version is baked in at build time (no runtime fetch — single-file/offline).
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
 
 // pedift ships as ONE self-contained pedift.html that works offline from file://.
 //
@@ -51,6 +55,7 @@ export default defineConfig({
   ],
   define: {
     __OCR__: JSON.stringify(isOcr),
+    __APP_VERSION__: JSON.stringify(pkg.version),
   },
   resolve: {
     alias: {
