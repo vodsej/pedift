@@ -27,7 +27,7 @@ test('find: Ctrl+F searches across pages, highlights, and navigates', async ({ p
   await waitForCanvas(page)
 
   // The toolbar Find button toggles the bar (and reflects open state).
-  const findBtn = page.getByRole('button', { name: 'Find', exact: true })
+  const findBtn = page.getByRole('button', { name: 'Find (Ctrl+F)', exact: true })
   await findBtn.click()
   await expect(page.locator('.find-bar')).toBeVisible()
   await expect(findBtn).toHaveAttribute('aria-pressed', 'true')

@@ -386,8 +386,8 @@ test('i. phase-4 protect: password-protect plain PDF, verify with pdf-lib', asyn
   await dialog.locator('input[aria-label="New password"]').fill('wsme123')
   await dialog.locator('input[aria-label="Confirm password"]').fill('wsme123')
 
-  // "Protect & download" closes dialog and stages the password on the editor
-  await dialog.getByRole('button', { name: 'Protect & download' }).click()
+  // "Apply" closes dialog and stages the password on the editor (applied on save)
+  await dialog.getByRole('button', { name: 'Apply', exact: true }).click()
   await expect(dialog).not.toBeVisible({ timeout: 5_000 })
 
   // Save triggers editor.build() which applies the staged password
