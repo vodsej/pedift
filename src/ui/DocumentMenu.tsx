@@ -90,8 +90,15 @@ export function DocumentMenu({ onSelect }: { onSelect: (a: DocAction) => void })
 
   return (
     <div class="docmenu" ref={ref}>
-      <Button variant="secondary" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open}>
-        <IconMenu size={18} /> {t.workspace.documentMenu}
+      <Button
+        variant="secondary"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={t.workspace.documentMenu}
+      >
+        <IconMenu size={18} />
+        <span class="topbar__btnlabel">{t.workspace.documentMenu}</span>
       </Button>
       {open && (
         <div class="docmenu__list" role="menu" ref={listRef} onKeyDown={onListKey}>

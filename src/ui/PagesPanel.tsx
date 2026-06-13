@@ -29,6 +29,8 @@ interface Props {
   onExportImage: () => void
   /** Pages holding a live search match — drawn as a dot on the thumbnail. */
   matchPageIds?: Set<string> | null
+  /** Fired when a single page is tapped to view it — lets the mobile drawer close. */
+  onPick?: () => void
 }
 
 export function PagesPanel({
@@ -44,6 +46,7 @@ export function PagesPanel({
   onInsert,
   onExportImage,
   matchPageIds,
+  onPick,
 }: Props) {
   const pages = editor.pages
   const [dropIndex, setDropIndex] = useState<number | null>(null)
@@ -83,6 +86,7 @@ export function PagesPanel({
     }
     setSelection(new Set([id]))
     setCurrent(id)
+    onPick?.() // plain tap = "view this page" → close the mobile drawer
   }
 
   const startDrag = (e: DragEvent, id: string) => {

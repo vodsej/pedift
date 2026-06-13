@@ -17,6 +17,16 @@
   flex-shrink: 0;
 }
 
+/* On phones the tool palette wraps onto extra rows instead of overflowing off the
+   right edge — where #app's overflow-x:clip would make the last tools unreachable.
+   Wrapping (vs. horizontal scroll) also keeps the shapes/stamp popovers' overflow
+   visible. The one-row-tall guarantee only matters on desktop (its e2e runs ≥1000px). */
+@media (max-width: 720px) {
+  .annotate-toolbar {
+    flex-wrap: wrap;
+  }
+}
+
 /* Vertical divider between logical groups */
 .annotate-sep {
   width: 1px;

@@ -340,6 +340,13 @@ export const IconCheck = (p: P) => (
     <polyline points="20 6 9 17 4 12" />
   </Svg>
 )
+// Side-panel toggle (mobile): a framed view with a left thumbnail column.
+export const IconPages = (p: P) => (
+  <Svg {...p}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <line x1="9" y1="3" x2="9" y2="21" />
+  </Svg>
+)
 export const IconShield = (p: P) => (
   <Svg {...p}>
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />

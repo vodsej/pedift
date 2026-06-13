@@ -44,6 +44,7 @@ import {
   IconShield,
   IconUndo,
   IconRedo,
+  IconPages,
 } from './icons'
 import {
   downloadBytes,
@@ -99,6 +100,9 @@ export function Workspace({
 
   const [selection, setSelection] = useState<Set<string>>(new Set())
   const [current, setCurrent] = useState<string | null>(pages[0]?.id ?? null)
+  // Mobile-only: the Pages panel collapses to an off-canvas drawer toggled here.
+  // On desktop the sidebar is always in-flow (CSS), so this state is inert there.
+  const [pagesOpen, setPagesOpen] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [dialog, setDialog] = useState<ActiveDialog>(null)
   const [saving, setSaving] = useState(false)
@@ -357,6 +361,15 @@ export function Workspace({
           >
             <IconChevronLeft />
           </IconButton>
+          <IconButton
+            class="topbar__pages-toggle"
+            label={t.workspace.pagesPanel}
+            active={pagesOpen}
+            aria-expanded={pagesOpen}
+            onClick={() => setPagesOpen((v) => !v)}
+          >
+            <IconPages />
+          </IconButton>
           <span class="topbar__filename" title={isDirty ? `• ${fileName}` : fileName}>
             {isDirty && <span class="topbar__dirty" aria-hidden="true">•</span>}
             {fileName}
@@ -371,27 +384,29 @@ export function Workspace({
             <IconRedo />
           </IconButton>
           <span class="topbar__divider" />
-          <IconButton label={t.workspace.zoomOut} onClick={() => zoomBy(0.8)}>
-            <IconZoomOut />
-          </IconButton>
-          <button
-            type="button"
-            class="zoom-label"
-            onClick={() => setZoom(1)}
-            title={t.workspace.resetZoom}
-            aria-label={t.workspace.resetZoom}
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-          <IconButton label={t.workspace.zoomIn} onClick={() => zoomBy(1.25)}>
-            <IconZoomIn />
-          </IconButton>
-          <IconButton label={t.workspace.fitWidth} onClick={() => setZoom(1)}>
-            <IconFit />
-          </IconButton>
-          <IconButton label={t.workspace.fitPage} onClick={fitPage}>
-            <IconFitPage />
-          </IconButton>
+          <span class="topbar__zoom">
+            <IconButton label={t.workspace.zoomOut} onClick={() => zoomBy(0.8)}>
+              <IconZoomOut />
+            </IconButton>
+            <button
+              type="button"
+              class="zoom-label"
+              onClick={() => setZoom(1)}
+              title={t.workspace.resetZoom}
+              aria-label={t.workspace.resetZoom}
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+            <IconButton label={t.workspace.zoomIn} onClick={() => zoomBy(1.25)}>
+              <IconZoomIn />
+            </IconButton>
+            <IconButton label={t.workspace.fitWidth} onClick={() => setZoom(1)}>
+              <IconFit />
+            </IconButton>
+            <IconButton label={t.workspace.fitPage} onClick={fitPage}>
+              <IconFitPage />
+            </IconButton>
+          </span>
           <span class="topbar__divider" />
           <IconButton
             id="find-toggle"
@@ -410,8 +425,9 @@ export function Workspace({
           <DocumentMenu onSelect={onDocAction} />
           <LangToggle locale={locale} onSelect={onSetLocale} />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
-          <Button variant="primary" onClick={save} disabled={saving}>
-            <IconSave size={18} /> {saving ? t.workspace.saving : t.workspace.save}
+          <Button variant="primary" onClick={save} disabled={saving} aria-label={t.workspace.save}>
+            <IconSave size={18} />
+            <span class="topbar__btnlabel">{saving ? t.workspace.saving : t.workspace.save}</span>
           </Button>
         </div>
       </header>
@@ -427,7 +443,10 @@ export function Workspace({
       />
 
       <div class="workspace__body">
-        <aside class="sidebar">
+        {pagesOpen && (
+          <div class="sidebar-scrim" onClick={() => setPagesOpen(false)} aria-hidden="true" />
+        )}
+        <aside class={`sidebar ${pagesOpen ? 'is-open' : ''}`}>
           <PagesPanel
             editor={editor}
             registry={registry}
@@ -435,6 +454,7 @@ export function Workspace({
             setSelection={setSelection}
             current={current}
             setCurrent={setCurrent}
+            onPick={() => setPagesOpen(false)}
             matchPageIds={searchMatchPages}
             onDelete={() => setDialog('confirmDelete')}
             onExtract={extract}

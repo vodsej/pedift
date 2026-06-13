@@ -214,6 +214,17 @@
 .topbar__center {
   min-width: 0; /* let the center group shrink instead of forcing overflow */
 }
+/* Zoom controls grouped so they can be hidden as a unit on mobile (where the page
+   auto-fits width and pinch-zoom is available). Spacing mirrors the topbar gap. */
+.topbar__zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+/* Mobile-only Pages-drawer toggle; on desktop the sidebar is always in-flow. */
+.topbar__pages-toggle {
+  display: none;
+}
 .topbar__filename {
   font-weight: 600;
   white-space: nowrap;
@@ -299,6 +310,10 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+/* Dimmer behind the mobile Pages drawer; only shown inside the mobile breakpoint. */
+.sidebar-scrim {
+  display: none;
 }
 .pagespanel {
   display: flex;
@@ -583,18 +598,63 @@
   border: 0;
 }
 
-/* ---------- Responsive ---------- */
+/* ---------- Responsive (phones ≤ 720px) ---------- */
 @media (max-width: 720px) {
-  .sidebar {
-    width: 104px;
+  /* --- Topbar: trim to what fits one row without the controls overlapping. --- */
+  .topbar {
+    gap: var(--space-1);
+    padding: 0 var(--space-2);
+  }
+  /* Keep every control at full size; only the filename gives up width (ellipsis). */
+  .topbar .iconbtn,
+  .topbar .btn {
+    flex-shrink: 0;
+  }
+  .topbar .btn {
+    padding: 0 var(--space-3);
   }
   .topbar__filename {
-    max-width: 120px;
+    max-width: none;
+    min-width: 0;
   }
-  .privacy-badge--mini {
+  /* Show the Pages-drawer toggle; drop the desktop-only chrome. */
+  .topbar__pages-toggle {
+    display: inline-flex;
+  }
+  .privacy-badge--mini,
+  .topbar__divider,
+  .topbar__zoom,
+  .topbar__btnlabel {
     display: none;
   }
-  .topbar__divider {
+  /* Language + theme toggles are the only icon buttons in the right cluster; they
+     move off the workspace bar on mobile (both are set from the landing screen). */
+  .topbar__right .iconbtn {
     display: none;
+  }
+
+  /* --- Pages panel becomes an off-canvas drawer. --- */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(300px, 84vw);
+    z-index: 70;
+    border-right: 1px solid var(--border);
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+    box-shadow: var(--shadow-lg);
+  }
+  .sidebar.is-open {
+    transform: translateX(0);
+  }
+  .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--overlay-scrim);
+    z-index: 65;
+    animation: fade-in 150ms ease;
   }
 }
