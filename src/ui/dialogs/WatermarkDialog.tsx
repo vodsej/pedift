@@ -25,12 +25,20 @@ export function WatermarkDialog({
   const [toPage, setToPage] = useState(String(editor.pageCount))
 
   const apply = () => {
+    if (rangeMode === 'range') {
+      const from = parseInt(fromPage, 10)
+      const to = parseInt(toPage, 10)
+      if (isNaN(from) || isNaN(to) || from > to || from < 1 || to > editor.pageCount) {
+        toast.error(t.common.invalidRange)
+        return
+      }
+    }
     const range: [number, number] | null =
       rangeMode === 'range'
         ? [Math.max(0, parseInt(fromPage, 10) - 1), Math.max(0, parseInt(toPage, 10) - 1)]
         : null
     editor.setWatermark({ text, color, opacity: opacity / 100, fontSize: 48, range })
-    toast.success(t.dialogs.watermark.title)
+    toast.success(t.dialogs.watermark.applied)
     onClose()
   }
 
@@ -77,10 +85,11 @@ export function WatermarkDialog({
         </div>
       </Field>
 
-      <Field label={t.dialogs.watermark.applyTo}>
+      <Field label={t.dialogs.watermark.applyTo} as="div">
         <SegmentedControl<RangeMode>
           value={rangeMode}
           onChange={setRangeMode}
+          ariaLabel={t.dialogs.watermark.applyTo}
           options={[
             { value: 'all', label: t.common.all },
             { value: 'range', label: t.dialogs.pageNumbers.range },

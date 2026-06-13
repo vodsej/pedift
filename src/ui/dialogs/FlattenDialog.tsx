@@ -29,7 +29,7 @@ export function FlattenDialog({
       const result = await flattenDocument(source.bytes, source.password)
       await editor.rebase(result)
       await registry.evict('original')
-      toast.success(t.dialogs.flatten.title)
+      toast.success(t.dialogs.flatten.applied)
       onClose()
     } catch (err) {
       toast.error(friendlyMessage(err))
@@ -42,10 +42,11 @@ export function FlattenDialog({
     <Dialog
       title={t.dialogs.flatten.title}
       onClose={onClose}
+      locked={busy}
       icon={<IconCheck size={18} />}
       footer={
         <>
-          <Button onClick={onClose}>{t.common.cancel}</Button>
+          <Button onClick={onClose} disabled={busy}>{t.common.cancel}</Button>
           <Button variant="primary" onClick={flatten} disabled={busy}>
             {t.dialogs.flatten.flattenButton}
           </Button>

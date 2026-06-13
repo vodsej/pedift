@@ -77,7 +77,7 @@ export function InsertDialog({
       pageRotations: file.rotations,
     })
     editor.insertSourcePages(sourceId, indices, parseInt(position, 10))
-    toast.success(`${indices.length} ${t.common.pages.toLowerCase()}`)
+    toast.success(t.toasts.pagesInserted(indices.length))
     onClose()
   }
 
@@ -128,13 +128,14 @@ export function InsertDialog({
             </span>
           </div>
 
-          <Field label={t.dialogs.insert.whichPages}>
+          <Field label={t.dialogs.insert.whichPages} as="div">
             <SegmentedControl<Which>
               value={which}
               onChange={setWhich}
+              ariaLabel={t.dialogs.insert.whichPages}
               options={[
                 { value: 'all', label: t.dialogs.insert.allPages },
-                { value: 'some', label: t.dialogs.insert.somePages },
+                { value: 'some', label: t.dialogs.insert.somePagesPicker },
               ]}
             />
           </Field>

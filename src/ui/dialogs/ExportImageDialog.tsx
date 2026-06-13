@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks'
+import { Spinner } from '../components/Spinner'
 import type { EditorDocument } from '../../core/document'
 import type { RenderRegistry } from '../../render/registry'
 import { descriptorToImageBlob, type ImageFormat } from '../../render/exportImage'
@@ -29,26 +30,30 @@ export function ExportImageDialog({
   const [format, setFormat] = useState<ImageFormat>('png')
   const [scale, setScale] = useState('2')
   const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
 
   // Export selected pages, or the whole document if nothing is selected.
   const targets = ids.length ? editor.pages.filter((p) => ids.includes(p.id)) : editor.pages
 
   const run = async () => {
     setBusy(true)
+    setProgress({ current: 0, total: targets.length })
     try {
       const s = parseInt(scale, 10)
       for (let i = 0; i < targets.length; i++) {
+        setProgress({ current: i + 1, total: targets.length })
         const blob = await descriptorToImageBlob(registry, targets[i], format, s)
         const pageNo = editor.pages.findIndex((p) => p.id === targets[i].id) + 1
         downloadBlob(blob, withSuffix(fileName, `-p${pageNo}`, format === 'png' ? '.png' : '.jpg'))
         await sleep(300)
       }
-      toast.success(`${targets.length} ${t.common.pages.toLowerCase()}`)
+      toast.success(t.dialogs.exportImage.done(targets.length))
       onClose()
     } catch (err) {
       toast.error(friendlyMessage(err))
     } finally {
       setBusy(false)
+      setProgress(null)
     }
   }
 
@@ -66,6 +71,13 @@ export function ExportImageDialog({
         </>
       }
     >
+      {busy && progress && (
+        <div class="compress-busy">
+          <Spinner size={22} />
+          <span>{t.dialogs.exportImage.exporting(progress.current, progress.total)}</span>
+        </div>
+      )}
+
       <Field label={t.dialogs.exportImage.format}>
         <SegmentedControl<ImageFormat>
           value={format}

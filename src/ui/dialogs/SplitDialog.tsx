@@ -62,7 +62,7 @@ export function SplitDialog({
         downloadBytes(parts[i], withSuffix(fileName, `-part${i + 1}`))
         await sleep(350) // give the browser time between downloads
       }
-      toast.success(`${parts.length} ${t.common.pages.toLowerCase()}`)
+      toast.success(t.toasts.splitIntoFiles(parts.length))
       onClose()
     } catch (err) {
       toast.error(friendlyMessage(err))
@@ -85,16 +85,15 @@ export function SplitDialog({
         </>
       }
     >
-      <Field label="">
-        <SegmentedControl<Mode>
-          value={mode}
-          onChange={setMode}
-          options={[
-            { value: 'ranges', label: t.dialogs.split.byRanges },
-            { value: 'everyN', label: t.dialogs.split.everyN },
-          ]}
-        />
-      </Field>
+      <SegmentedControl<Mode>
+        value={mode}
+        onChange={setMode}
+        ariaLabel={t.dialogs.split.title}
+        options={[
+          { value: 'ranges', label: t.dialogs.split.byRanges },
+          { value: 'everyN', label: t.dialogs.split.everyN },
+        ]}
+      />
       {mode === 'ranges' ? (
         <Field label={t.dialogs.split.rangesLabel}>
           <TextInput value={ranges} onInput={(e) => setRanges((e.target as HTMLInputElement).value)} />

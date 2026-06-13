@@ -13,10 +13,15 @@ interface Props {
 export function PasswordDialog({ wrong, onSubmit, onCancel }: Props) {
   const ref = useRef<HTMLInputElement>(null)
   const [emptyError, setEmptyError] = useState(false)
+  const [showWrong, setShowWrong] = useState(wrong)
 
   useEffect(() => {
     ref.current?.focus()
   }, [])
+
+  useEffect(() => {
+    setShowWrong(wrong)
+  }, [wrong])
 
   const submit = (e: Event) => {
     e.preventDefault()
@@ -47,10 +52,11 @@ export function PasswordDialog({ wrong, onSubmit, onCancel }: Props) {
           type="password"
           placeholder={t.errors.passwordPrompt}
           autocomplete="off"
-          onInput={() => setEmptyError(false)}
+          aria-describedby={showWrong ? 'pw-error' : undefined}
+          onInput={() => { setEmptyError(false); setShowWrong(false) }}
         />
-        {emptyError && !wrong && <p class="form-error">{t.dialogs.protect.empty}</p>}
-        {wrong && <p class="form-error">{t.errors.wrongPassword}</p>}
+        {emptyError && !showWrong && <p class="form-error">{t.dialogs.protect.empty}</p>}
+        {showWrong && <p id="pw-error" class="form-error">{t.errors.wrongPassword}</p>}
       </form>
     </Dialog>
   )

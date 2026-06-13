@@ -36,10 +36,10 @@ export function ProtectDialog({
         return
       }
       editor.setProtect({ userPassword: newPassword })
-      toast.success(t.dialogs.protect.title)
+      toast.success(t.dialogs.protect.appliedAdd)
     } else {
       editor.setProtect(null)
-      toast.success(t.dialogs.protect.title)
+      toast.success(t.dialogs.protect.appliedRemove)
     }
     onClose()
   }
@@ -75,16 +75,19 @@ export function ProtectDialog({
         </>
       }
     >
-      <Field label={t.dialogs.protect.mode}>
+      <Field label={t.dialogs.protect.mode} as="div">
         <SegmentedControl<Mode>
           value={mode}
           onChange={(m) => { setMode(m); setError('') }}
+          ariaLabel={t.dialogs.protect.mode}
           options={[
             { value: 'addPassword', label: t.dialogs.protect.addPassword },
             { value: 'removePassword', label: t.dialogs.protect.removePassword },
           ]}
         />
       </Field>
+
+      <p class="qt-hint">{t.dialogs.protect.saveNote}</p>
 
       {mode === 'addPassword' && (
         <div class="protect-pw">

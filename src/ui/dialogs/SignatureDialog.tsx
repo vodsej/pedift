@@ -249,7 +249,7 @@ export function SignatureDialog(props: SignatureDialogProps): JSX.Element {
                 key={i}
                 type="button"
                 class="sig-reuse__thumb"
-                aria-label={t.dialogs.signature.reuse}
+                aria-label={`${t.dialogs.signature.reuse} ${i + 1}`}
                 onClick={() => { onConfirm(s.bytes, s.aspect); onClose() }}
               >
                 <img src={s.dataUrl} alt="" style={{ height: '40px', width: 'auto', display: 'block' }} />

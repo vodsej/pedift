@@ -71,10 +71,15 @@ export function CompressDialog({
         </Button>
       )}
       {result && (
-        <Button variant="primary" onClick={handleDownload}>
-          <IconDownload size={16} />
-          {t.common.download}
-        </Button>
+        <>
+          <Button variant="secondary" onClick={() => setResult(null)}>
+            {t.dialogs.compress.tryAgain}
+          </Button>
+          <Button variant="primary" onClick={handleDownload}>
+            <IconDownload size={16} />
+            {t.common.download}
+          </Button>
+        </>
       )}
     </>
   )

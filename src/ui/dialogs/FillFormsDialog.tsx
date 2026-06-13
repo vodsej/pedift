@@ -5,7 +5,7 @@ import type { FieldInfo } from '../../core/forms'
 import { detectFields, applyFormValues } from '../../core/forms'
 import { Dialog } from '../components/Dialog'
 import { Button } from '../components/Button'
-import { Field, TextInput, Select } from '../components/controls'
+import { TextInput, Select } from '../components/controls'
 import { Spinner } from '../components/Spinner'
 import { IconCheck } from '../icons'
 import { toast } from '../toast'
@@ -68,7 +68,7 @@ export function FillFormsDialog({
       })
       await editor.rebase(result)
       await registry.evict('original')
-      toast.success(t.dialogs.fillForms.title)
+      toast.success(t.dialogs.fillForms.applied)
       onClose()
     } catch (err) {
       toast.error(friendlyMessage(err))
@@ -129,13 +129,14 @@ export function FillFormsDialog({
     <Dialog
       title={t.dialogs.fillForms.title}
       onClose={onClose}
+      locked={busy}
       icon={<IconCheck size={18} />}
       footer={
         loading || fields.length === 0 ? (
           <Button onClick={onClose}>{t.common.close}</Button>
         ) : (
           <>
-            <Button onClick={onClose}>{t.common.cancel}</Button>
+            <Button onClick={onClose} disabled={busy}>{t.common.cancel}</Button>
             <Button variant="primary" onClick={apply} disabled={busy}>
               {t.dialogs.fillForms.saveButton}
             </Button>
@@ -155,11 +156,7 @@ export function FillFormsDialog({
 
       {!loading && fields.length > 0 && (
         <div class="form-field-list" aria-label={t.dialogs.fillForms.title}>
-          {fields.map((field) => (
-            <Field key={field.name} label="">
-              {renderFieldControl(field)}
-            </Field>
-          ))}
+          {fields.map((field) => renderFieldControl(field))}
         </div>
       )}
     </Dialog>

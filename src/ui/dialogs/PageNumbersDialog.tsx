@@ -42,6 +42,14 @@ export function PageNumbersDialog({
   const [toPage, setToPage] = useState(String(editor.pageCount))
 
   const apply = () => {
+    if (rangeMode === 'range') {
+      const from = parseInt(fromPage, 10)
+      const to = parseInt(toPage, 10)
+      if (isNaN(from) || isNaN(to) || from > to || from < 1 || to > editor.pageCount) {
+        toast.error(t.common.invalidRange)
+        return
+      }
+    }
     const range: [number, number] | null =
       rangeMode === 'range'
         ? [Math.max(0, parseInt(fromPage, 10) - 1), Math.max(0, parseInt(toPage, 10) - 1)]
@@ -54,7 +62,7 @@ export function PageNumbersDialog({
       fontSize: 12,
       color: '#333333',
     })
-    toast.success(t.dialogs.pageNumbers.title)
+    toast.success(t.dialogs.pageNumbers.applied)
     onClose()
   }
 
@@ -98,10 +106,11 @@ export function PageNumbersDialog({
         />
       </Field>
 
-      <Field label={t.dialogs.pageNumbers.range}>
+      <Field label={t.dialogs.pageNumbers.range} as="div">
         <SegmentedControl<RangeMode>
           value={rangeMode}
           onChange={setRangeMode}
+          ariaLabel={t.dialogs.pageNumbers.range}
           options={[
             { value: 'all', label: t.common.all },
             { value: 'range', label: t.dialogs.pageNumbers.range },

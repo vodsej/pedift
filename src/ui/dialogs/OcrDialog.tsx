@@ -32,6 +32,7 @@ export function OcrDialog({
   const [scannedIds, setScannedIds] = useState<Set<string> | null>(null)
   const [detecting, setDetecting] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null)
   const cancelRef = useRef(false)
 
@@ -79,13 +80,18 @@ export function OcrDialog({
     }
 
     cancelRef.current = false
+    setCancelling(false)
     setBusy(true)
     setProgress({ current: 0, total: targets.length })
 
     const collected: Record<string, OcrPageData> = {}
     try {
       for (let i = 0; i < targets.length; i++) {
-        if (cancelRef.current) return // cancelled — don't apply partial results
+        if (cancelRef.current) {
+          // Loop exited via cancellation — close automatically.
+          onClose()
+          return
+        }
         setProgress({ current: i + 1, total: targets.length })
         const pd = targets[i]
         const data = await recognizePage(registry, pd, lang)
@@ -102,6 +108,7 @@ export function OcrDialog({
       toast.error(friendlyMessage(err))
     } finally {
       setBusy(false)
+      setCancelling(false)
       setProgress(null)
     }
   }
@@ -109,6 +116,7 @@ export function OcrDialog({
   const cancel = () => {
     if (busy) {
       cancelRef.current = true
+      setCancelling(true)
     } else {
       onClose()
     }
@@ -137,7 +145,7 @@ export function OcrDialog({
         <p class="qt-hint">{t.dialogs.ocr.detecting}</p>
       ) : (
         <>
-          <Field label={t.dialogs.ocr.language}>
+          <Field label={t.dialogs.ocr.language} as="div">
             <div class="ocr-radio-group">
               <label class="ocr-radio-label">
                 <input
@@ -145,6 +153,7 @@ export function OcrDialog({
                   name="ocr-lang"
                   value="eng"
                   checked={lang === 'eng'}
+                  disabled={busy}
                   onChange={() => setLang('eng')}
                 />
                 {t.dialogs.ocr.english}
@@ -155,6 +164,7 @@ export function OcrDialog({
                   name="ocr-lang"
                   value="ces"
                   checked={lang === 'ces'}
+                  disabled={busy}
                   onChange={() => setLang('ces')}
                 />
                 {t.dialogs.ocr.czech}
@@ -162,7 +172,7 @@ export function OcrDialog({
             </div>
           </Field>
 
-          <Field label={t.dialogs.ocr.scope}>
+          <Field label={t.dialogs.ocr.scope} as="div">
             <div class="ocr-radio-group">
               <label class="ocr-radio-label">
                 <input
@@ -170,6 +180,7 @@ export function OcrDialog({
                   name="ocr-scope"
                   value="all"
                   checked={scope === 'all'}
+                  disabled={busy}
                   onChange={() => setScope('all')}
                 />
                 {t.dialogs.ocr.scopeAll}
@@ -180,16 +191,21 @@ export function OcrDialog({
                   name="ocr-scope"
                   value="scanned"
                   checked={scope === 'scanned'}
+                  disabled={busy || scannedCount === 0}
                   onChange={() => setScope('scanned')}
                 />
                 {t.dialogs.ocr.scopeScanned.replace('{count}', String(scannedCount))}
               </label>
+              {scannedCount === 0 && (
+                <p class="qt-hint">{t.dialogs.ocr.allHaveText}</p>
+              )}
               <label class="ocr-radio-label">
                 <input
                   type="radio"
                   name="ocr-scope"
                   value="range"
                   checked={scope === 'range'}
+                  disabled={busy}
                   onChange={() => setScope('range')}
                 />
                 {t.dialogs.ocr.scopeRange}
@@ -202,6 +218,8 @@ export function OcrDialog({
               <TextInput
                 value={rangeInput}
                 placeholder={`1-${total}`}
+                disabled={busy}
+                autofocus
                 onInput={(e) => setRangeInput((e.target as HTMLInputElement).value)}
               />
             </Field>
@@ -212,11 +230,19 @@ export function OcrDialog({
       {progress && (
         <div class="ocr-progress">
           <span class="ocr-progress__label">
-            {t.dialogs.ocr.progress
-              .replace('{current}', String(progress.current))
-              .replace('{total}', String(progress.total))}
+            {cancelling
+              ? t.dialogs.ocr.cancelling
+              : t.dialogs.ocr.progress
+                  .replace('{current}', String(progress.current))
+                  .replace('{total}', String(progress.total))}
           </span>
-          <div class="ocr-progress__bar-track">
+          <div
+            class="ocr-progress__bar-track"
+            role="progressbar"
+            aria-valuenow={progress.current}
+            aria-valuemin={0}
+            aria-valuemax={progress.total}
+          >
             <div
               class="ocr-progress__bar-fill"
               style={{ width: `${Math.round((progress.current / progress.total) * 100)}%` }}
