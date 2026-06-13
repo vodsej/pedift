@@ -2,13 +2,19 @@
 
 .annotate-toolbar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-1) var(--space-2);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: relative;
+}
+
+/* The tool buttons always stay put and full-size; only the options group (below)
+   absorbs tight space, so the bar stays exactly one row tall for every tool. */
+.annotate-toolbar > :not(.annotate-options) {
+  flex-shrink: 0;
 }
 
 /* Vertical divider between logical groups */
@@ -20,17 +26,26 @@
   margin: 0 var(--space-1);
 }
 
-/* Options section pushed to the right */
+/* Options section pushed to the right. Kept to a single row so switching tools
+   never changes the toolbar height; if the controls can't fit on a narrow window
+   they scroll horizontally instead of wrapping the whole bar onto a second line.
+   padding/margin-block reclaim the toolbar's own vertical padding so the scroll
+   container doesn't clip control focus rings. */
 .annotate-options {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   margin-left: auto;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  padding-block: var(--space-1);
+  margin-block: calc(-1 * var(--space-1));
 }
 
 .annotate-options .field {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: var(--space-1);
   margin: 0;
@@ -50,6 +65,25 @@
   font-size: 0.8125rem;
   padding-block: 3px;
   height: auto;
+}
+
+/* Text alignment: three connected toggles instead of three loose icon buttons,
+   so the (widest) text-tool option group stays compact and one row tall. */
+.annotate-align {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.annotate-align .iconbtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 0;
+}
+.annotate-align .iconbtn + .iconbtn {
+  border-left: 1px solid var(--border);
 }
 
 /* Fill toggle button in options area */

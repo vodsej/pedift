@@ -248,7 +248,7 @@ function ContextOptions({
         <Field label={t.tools.color}>
           <ColorInput value={options.color} onChange={(v) => setOptions({ ...options, color: v })} />
         </Field>
-        <Field label={t.tools.align} as="div">
+        <div class="annotate-align" role="group" aria-label={t.tools.align}>
           <IconButton
             label={t.tools.alignLeft}
             active={options.align === 'left'}
@@ -270,7 +270,7 @@ function ContextOptions({
           >
             <IconAlignRight size={16} />
           </IconButton>
-        </Field>
+        </div>
       </div>
     )
   }
