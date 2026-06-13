@@ -94,7 +94,7 @@ export function MergeWizard({ onClose }: { onClose: () => void }) {
         onClick={handleMerge}
         disabled={files.length < 2 || busy}
       >
-        {busy ? t.common.loading : t.dialogs.merge.mergeButton}
+        {busy ? t.dialogs.merge.merging : t.dialogs.merge.mergeButton}
       </Button>
     </>
   )
@@ -125,7 +125,7 @@ export function MergeWizard({ onClose }: { onClose: () => void }) {
       {/* File list */}
       {files.length > 0 && !busy && (
         <>
-          <div class="qt-list">
+          <div class="qt-list" role="list">
             {files.map((file, idx) => (
               <FileRow
                 key={`${file.name}:${file.size}`}

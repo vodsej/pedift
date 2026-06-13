@@ -110,11 +110,11 @@ export function ProtectWizard({
     >
       {/* File picker */}
       {!file && !busy && (
-        <DropZone accept="pdf" onFiles={handleFiles} compact>
+        <DropZone accept="pdf" onFiles={handleFiles} compact activeLabel={t.landing.dropActive}>
           <span class="dropzone__icon">
             <IconFile size={28} />
           </span>
-          <span class="dropzone__title">{t.landing.dropTitle}</span>
+          <span class="dropzone__title">{t.dialogs.protect.pickFile}</span>
         </DropZone>
       )}
 

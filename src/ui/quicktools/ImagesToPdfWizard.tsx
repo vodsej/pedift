@@ -103,7 +103,7 @@ export function ImagesToPdfWizard({ onClose }: { onClose: () => void }) {
       )
       const result = await imagesToPdf(images, { pageSize, orientation, margin })
       downloadBytes(result, 'images.pdf')
-      toast.success(t.toasts.merged(entries.length))
+      toast.success(t.toasts.createdFromImages(entries.length))
       onClose()
     } catch (err) {
       toast.error(friendlyMessage(err))
@@ -135,7 +135,7 @@ export function ImagesToPdfWizard({ onClose }: { onClose: () => void }) {
         onClick={handleCreate}
         disabled={entries.length === 0 || busy}
       >
-        {busy ? t.common.loading : t.dialogs.imagesToPdf.createButton}
+        {busy ? t.dialogs.imagesToPdf.creating : t.dialogs.imagesToPdf.createButton}
       </Button>
     </>
   )
@@ -202,7 +202,7 @@ export function ImagesToPdfWizard({ onClose }: { onClose: () => void }) {
       {/* Image list */}
       {entries.length > 0 && !busy && (
         <>
-          <div class="qt-list">
+          <div class="qt-list" role="list">
             {entries.map((entry, idx) => (
               <FileRow
                 key={`${entry.file.name}:${entry.file.size}`}

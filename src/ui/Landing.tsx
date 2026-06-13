@@ -14,6 +14,7 @@ import {
 import type { Theme } from './theme'
 import { t, type Locale } from '../strings'
 import { downloadBlob } from '../io/fileio'
+import { toast } from './toast'
 import logoUrl from './assets/logo.png'
 
 export type QuickToolId = 'merge' | 'images' | 'compress' | 'protect'
@@ -96,6 +97,8 @@ export function Landing({
           onFiles={(files) => files[0] && onOpenFile(files[0])}
           activeLabel={t.landing.dropActive}
           class="landing__drop"
+          disabled={opening}
+          onReject={() => toast.error(t.errors.notAPdf)}
         >
           {opening ? (
             <Spinner size={36} label={t.common.loading} />
@@ -134,7 +137,7 @@ export function Landing({
       </main>
 
       <footer class="landing__foot">
-        <span>{t.privacy.line}</span>
+        <span>{t.privacy.badge}</span>
         <span class="landing__sep" aria-hidden="true"></span>
         <button type="button" class="landing__save-btn" onClick={handleSavePage}>
           <IconDownload size={13} />{t.landing.saveThisPage}

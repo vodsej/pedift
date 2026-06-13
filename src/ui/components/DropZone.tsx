@@ -16,6 +16,10 @@ interface DropZoneProps {
   activeLabel?: string
   /** Accessible label for the drop zone root (role="button"). */
   label?: string
+  /** When true, ignores clicks and drops. */
+  disabled?: boolean
+  /** Called when files were dropped/picked but all were filtered out by accept. */
+  onReject?: (files: File[]) => void
 }
 
 function acceptAttr(accept: Accept): string | undefined {
@@ -39,6 +43,8 @@ export function DropZone({
   children,
   activeLabel,
   label = t.landing.dropTitle,
+  disabled = false,
+  onReject,
 }: DropZoneProps) {
   const [over, setOver] = useState(false)
   const depth = useRef(0)
@@ -47,31 +53,48 @@ export function DropZone({
     e.preventDefault()
     depth.current = 0
     setOver(false)
+    if (disabled) return
     const dropped = e.dataTransfer?.files ? Array.from(e.dataTransfer.files) : []
     const filtered = filterFiles(dropped, accept)
-    if (filtered.length) onFiles(multiple ? filtered : [filtered[0]])
+    if (filtered.length) {
+      onFiles(multiple ? filtered : [filtered[0]])
+    } else if (dropped.length > 0) {
+      onReject?.(dropped)
+    }
   }
 
   const openPicker = async () => {
+    if (disabled) return
     const files = await pickFiles({ accept: acceptAttr(accept), multiple })
-    if (files.length) onFiles(files)
+    if (files.length) {
+      const filtered = filterFiles(files, accept)
+      if (filtered.length) {
+        onFiles(multiple ? filtered : [filtered[0]])
+      } else if (files.length > 0) {
+        onReject?.(files)
+      }
+    }
   }
 
   return (
     <div
-      class={`dropzone ${compact ? 'dropzone--compact' : ''} ${over ? 'is-over' : ''} ${cls}`}
-      role="button"
-      tabIndex={0}
+      class={`dropzone ${compact ? 'dropzone--compact' : ''} ${over ? 'is-over' : ''} ${disabled ? 'is-disabled' : ''} ${cls}`}
+      role={disabled ? undefined : 'button'}
+      tabIndex={disabled ? undefined : 0}
       aria-label={label}
+      aria-disabled={disabled || undefined}
+      style={disabled ? { pointerEvents: 'none', opacity: 0.7 } : undefined}
       onClick={openPicker}
-      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), openPicker())}
+      onKeyDown={(e) => !disabled && (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), openPicker())}
       onDragEnter={(e) => {
+        if (disabled) return
         e.preventDefault()
         depth.current++
         setOver(true)
       }}
-      onDragOver={(e) => e.preventDefault()}
+      onDragOver={(e) => { if (!disabled) e.preventDefault() }}
       onDragLeave={() => {
+        if (disabled) return
         depth.current--
         if (depth.current <= 0) setOver(false)
       }}

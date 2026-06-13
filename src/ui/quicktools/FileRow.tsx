@@ -48,6 +48,8 @@ export function FileRow({
   return (
     <div
       class={cls}
+      role="listitem"
+      aria-label={`${name}, ${index + 1} / ${total} — ${t.common.dragToReorder}`}
       draggable
       onDragStart={onDragStart}
       onDragOver={(e) => {

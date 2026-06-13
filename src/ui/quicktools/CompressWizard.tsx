@@ -99,8 +99,9 @@ export function CompressWizard({ onClose }: { onClose: () => void }) {
           accept="pdf"
           onFiles={handleFiles}
           class="compress-drop"
+          activeLabel={t.landing.dropActive}
         >
-          <span class="qt-empty">{t.landing.dropTitle}</span>
+          <span class="qt-empty">{t.dialogs.compress.pickFile}</span>
         </DropZone>
       )}
 
