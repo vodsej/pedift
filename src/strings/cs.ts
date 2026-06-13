@@ -153,6 +153,10 @@ export const cs: Strings = {
     fontCourier: 'Courier',
     opacity: 'Průhlednost',
     annotationToolbarAriaLabel: 'Nástroje pro anotace',
+    align: 'Zarovnání',
+    alignLeft: 'Zarovnat vlevo',
+    alignCenter: 'Zarovnat na střed',
+    alignRight: 'Zarovnat vpravo',
   },
 
   pagesPanel: {
@@ -271,7 +275,7 @@ export const cs: Strings = {
     },
     crop: {
       title: 'Oříznout',
-      hint: 'Přetažením obdélníku na stránce nastavte viditelnou oblast.',
+      hint: 'Přetažením obdélníku na stránce nastavte viditelnou oblast. Zrušíte klávesou Esc.',
       applyTo: 'Použít na',
       thisPage: 'Tuto stránku',
       allPages: 'Všechny stránky',

@@ -328,7 +328,14 @@ export function OverlayLayer({
           onDoubleClick={() => obj.type === 'text' && tool === 'select' && (setSelectedId(obj.id), setEditingId(obj.id))}
           onEditCommit={(text) => {
             setEditingId(null)
-            if (obj.type === 'text') commit({ ...obj, text })
+            if (obj.type === 'text') {
+              if (text.trim() === '') {
+                removeObj(obj.id)
+                setSelectedId(null)
+              } else {
+                commit({ ...obj, text })
+              }
+            }
           }}
         />
       ))}
@@ -551,6 +558,7 @@ function Handles({ vb, onStartResize }: { vb: ViewRect; onStartResize: (e: Point
         <div
           key={h.c}
           class="overlay-handle"
+          data-corner={h.c}
           style={{ position: 'absolute', left: h.x, top: h.y }}
           onPointerDown={(e) => onStartResize(e as unknown as PointerEvent, h.c)}
         />

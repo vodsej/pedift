@@ -1,4 +1,4 @@
-import { useRef, useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 import type { EditorDocument } from '../core/document'
 import { rectViewToPdf, displayHeightCss, type PageGeometry, type ViewRect } from './geometry'
 import { t } from '../strings'
@@ -52,6 +52,14 @@ export function CropOverlay({ geometry: g, editor, pageId, onDone }: Props) {
     onDone()
   }
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); onDone() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onDone])
+
   const handles: Array<{ c: Corner; x: number; y: number }> = [
     { c: 'nw', x: rect.x, y: rect.y },
     { c: 'ne', x: rect.x + rect.width, y: rect.y },
@@ -79,6 +87,7 @@ export function CropOverlay({ geometry: g, editor, pageId, onDone }: Props) {
         <div
           key={h.c}
           class="crop-handle"
+          data-corner={h.c}
           style={{ left: h.x, top: h.y }}
           onPointerDown={(e) => {
             e.stopPropagation()

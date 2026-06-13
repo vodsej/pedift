@@ -76,6 +76,10 @@ html[data-theme='dark'] .overlay-text-edit {
   /* Explicit so handles stay hittable when the select-mode root is none. */
   pointer-events: auto;
 }
+.overlay-handle[data-corner='ne'],
+.overlay-handle[data-corner='sw'] {
+  cursor: nesw-resize;
+}
 
 /* Live preview of watermark / page numbers / crop (non-interactive) */
 .preview-layer {
@@ -197,6 +201,10 @@ html[data-theme='dark'] .overlay-text-edit {
   border-radius: 3px;
   cursor: nwse-resize;
   touch-action: none;
+}
+.crop-handle[data-corner='ne'],
+.crop-handle[data-corner='sw'] {
+  cursor: nesw-resize;
 }
 .crop-bar {
   position: absolute;

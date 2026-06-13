@@ -374,3 +374,24 @@ export const IconOcr = (p: P) => (
     <line x1="8" y1="17" x2="13" y2="17" />
   </Svg>
 )
+export const IconAlignLeft = (p: P) => (
+  <Svg {...p}>
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="12" x2="15" y2="12" />
+    <line x1="3" y1="18" x2="18" y2="18" />
+  </Svg>
+)
+export const IconAlignCenter = (p: P) => (
+  <Svg {...p}>
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="6" y1="12" x2="18" y2="12" />
+    <line x1="4" y1="18" x2="20" y2="18" />
+  </Svg>
+)
+export const IconAlignRight = (p: P) => (
+  <Svg {...p}>
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="9" y1="12" x2="21" y2="12" />
+    <line x1="6" y1="18" x2="21" y2="18" />
+  </Svg>
+)

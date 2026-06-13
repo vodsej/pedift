@@ -144,6 +144,10 @@ export const en = {
     fontCourier: 'Courier',
     opacity: 'Opacity',
     annotationToolbarAriaLabel: 'Annotation tools',
+    align: 'Alignment',
+    alignLeft: 'Align left',
+    alignCenter: 'Align center',
+    alignRight: 'Align right',
   },
 
   pagesPanel: {
@@ -257,7 +261,7 @@ export const en = {
     },
     crop: {
       title: 'Crop',
-      hint: 'Drag a rectangle on the page to set the visible area.',
+      hint: 'Drag a rectangle on the page to set the visible area. Press Esc to cancel.',
       applyTo: 'Apply to',
       thisPage: 'This page',
       allPages: 'All pages',

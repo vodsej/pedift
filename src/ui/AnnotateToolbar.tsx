@@ -20,6 +20,9 @@ import {
   IconSignature,
   IconStamp,
   IconCheck,
+  IconAlignLeft,
+  IconAlignCenter,
+  IconAlignRight,
 } from './icons'
 import { t } from '../strings'
 import './styles/annotate.css'
@@ -53,10 +56,12 @@ function ShapesMenu({
   tool,
   setTool,
   onClose,
+  wrapperRef,
 }: {
   tool: ToolId
   setTool: (t: ToolId) => void
   onClose: () => void
+  wrapperRef: { current: HTMLDivElement | null }
 }) {
   const items: Array<{ id: ToolId; label: string; icon: JSX.Element }> = [
     { id: 'rect', label: t.tools.rectangle, icon: <IconSquare size={16} /> },
@@ -64,15 +69,31 @@ function ShapesMenu({
     { id: 'line', label: t.tools.line, icon: <IconLine size={16} /> },
     { id: 'arrow', label: t.tools.arrow, icon: <IconArrow size={16} /> },
   ]
+  const close = () => {
+    onClose()
+    wrapperRef.current?.querySelector<HTMLButtonElement>('button')?.focus()
+  }
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); close(); return }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      const menu = (e.currentTarget as HTMLElement)
+      const focusable = Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]'))
+      const idx = focusable.indexOf(document.activeElement as HTMLElement)
+      if (idx === -1) return // focus is on a form control (e.g. the size slider) — let it handle arrows
+      e.preventDefault()
+      const next = e.key === 'ArrowDown' ? (idx + 1) % focusable.length : (idx - 1 + focusable.length) % focusable.length
+      focusable[next]?.focus()
+    }
+  }
   return (
-    <div class="tool-menu" role="menu">
+    <div class="tool-menu" role="menu" onKeyDown={onKeyDown}>
       {items.map((item) => (
         <button
           key={item.id}
           type="button"
           role="menuitem"
           class={`tool-menu__item${tool === item.id ? ' is-active' : ''}`}
-          onClick={() => { setTool(item.id); onClose() }}
+          onClick={() => { setTool(item.id); close() }}
         >
           {item.icon}
           {item.label}
@@ -82,7 +103,19 @@ function ShapesMenu({
   )
 }
 
-function StampMenu({ onStamp, onClose }: { onStamp: (text: string) => void; onClose: () => void }) {
+function StampMenu({
+  onStamp,
+  onClose,
+  options,
+  setOptions,
+  wrapperRef,
+}: {
+  onStamp: (text: string) => void
+  onClose: () => void
+  options: ToolOptions
+  setOptions: (o: ToolOptions) => void
+  wrapperRef: { current: HTMLDivElement | null }
+}) {
   const items: Array<{ label: string; value: string }> = [
     { label: t.dialogs.stamp.approved, value: 'APPROVED' },
     { label: t.dialogs.stamp.draft, value: 'DRAFT' },
@@ -91,15 +124,45 @@ function StampMenu({ onStamp, onClose }: { onStamp: (text: string) => void; onCl
     { label: t.dialogs.stamp.cross, value: '✗' },
     { label: t.dialogs.stamp.date, value: new Date().toLocaleDateString() },
   ]
+  const close = () => {
+    onClose()
+    wrapperRef.current?.querySelector<HTMLButtonElement>('button')?.focus()
+  }
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); close(); return }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      const menu = (e.currentTarget as HTMLElement)
+      const focusable = Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]'))
+      const idx = focusable.indexOf(document.activeElement as HTMLElement)
+      if (idx === -1) return // focus is on a form control (e.g. the size slider) — let it handle arrows
+      e.preventDefault()
+      const next = e.key === 'ArrowDown' ? (idx + 1) % focusable.length : (idx - 1 + focusable.length) % focusable.length
+      focusable[next]?.focus()
+    }
+  }
   return (
-    <div class="tool-menu" role="menu">
+    <div class="tool-menu" role="menu" onKeyDown={onKeyDown}>
+      <div class="tool-menu__options">
+        <Field label={t.tools.color} as="div">
+          <ColorInput value={options.stampColor} onChange={(v) => setOptions({ ...options, stampColor: v })} />
+        </Field>
+        <Field label={t.tools.fontSize} as="div">
+          <Slider
+            value={options.stampFontSize}
+            min={12}
+            max={72}
+            onInput={(v) => setOptions({ ...options, stampFontSize: v })}
+          />
+          <span style="font-size:0.75rem;color:var(--text-muted);min-width:2ch">{options.stampFontSize}</span>
+        </Field>
+      </div>
       {items.map((item) => (
         <button
           key={item.value}
           type="button"
           role="menuitem"
           class="tool-menu__item"
-          onClick={() => { onStamp(item.value); onClose() }}
+          onClick={() => { onStamp(item.value); close() }}
         >
           {item.label}
         </button>
@@ -184,6 +247,29 @@ function ContextOptions({
         </Field>
         <Field label={t.tools.color}>
           <ColorInput value={options.color} onChange={(v) => setOptions({ ...options, color: v })} />
+        </Field>
+        <Field label={t.tools.align} as="div">
+          <IconButton
+            label={t.tools.alignLeft}
+            active={options.align === 'left'}
+            onClick={() => setOptions({ ...options, align: 'left' })}
+          >
+            <IconAlignLeft size={16} />
+          </IconButton>
+          <IconButton
+            label={t.tools.alignCenter}
+            active={options.align === 'center'}
+            onClick={() => setOptions({ ...options, align: 'center' })}
+          >
+            <IconAlignCenter size={16} />
+          </IconButton>
+          <IconButton
+            label={t.tools.alignRight}
+            active={options.align === 'right'}
+            onClick={() => setOptions({ ...options, align: 'right' })}
+          >
+            <IconAlignRight size={16} />
+          </IconButton>
         </Field>
       </div>
     )
@@ -382,6 +468,7 @@ export function AnnotateToolbar(props: AnnotateToolbarProps): JSX.Element {
             tool={tool}
             setTool={setTool}
             onClose={() => setShapesOpen(false)}
+            wrapperRef={shapesRef}
           />
         )}
       </div>
@@ -434,6 +521,9 @@ export function AnnotateToolbar(props: AnnotateToolbarProps): JSX.Element {
           <StampMenu
             onStamp={onStamp}
             onClose={() => setStampOpen(false)}
+            options={options}
+            setOptions={setOptions}
+            wrapperRef={stampRef}
           />
         )}
       </div>
