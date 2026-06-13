@@ -5,9 +5,8 @@ name: Deploy to GitHub Pages
 #   /ocr.html  -> OCR edition   (dist/pedift-ocr.html, ~9 MB)
 # Build artifacts are never committed; everything is produced fresh here.
 
+# Manual only: trigger from the Actions tab (Run workflow), never on push.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 # Permissions required by the official Pages deploy action.
