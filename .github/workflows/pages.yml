@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages
+
+# Builds both editions and publishes them to GitHub Pages.
+#   /          -> lean edition  (dist/pedift.html, ~2.4 MB)
+#   /ocr.html  -> OCR edition   (dist/pedift-ocr.html, ~9 MB)
+# Build artifacts are never committed; everything is produced fresh here.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Permissions required by the official Pages deploy action.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment; newer pushes supersede in-flight ones.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Produces dist/pedift.html and dist/pedift-ocr.html.
+      - run: npm run build:all
+
+      # Guard: fails if dist/ ever stops being self-contained single files.
+      - run: npm run check:singlefile
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          cp dist/pedift.html      _site/index.html
+          cp dist/pedift-ocr.html  _site/ocr.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
